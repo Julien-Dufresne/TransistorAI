@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Experiment outputs and model weights
+checkpoints/
+models/
+outputs/
+mlruns/
+*.safetensors
+*.pt
+*.bin
+*.ckpt
+
+# Data (use documented instructions rather than committing corpora)
+data/raw/
+data/processed/
+*.parquet
+*.arrow
+*.jsonl
+*.tsv
+*.csv
+
+# Local notebooks and editor files
+.ipynb_checkpoints/
+.DS_Store
+.vscode/
+.idea/

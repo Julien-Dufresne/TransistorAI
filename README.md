@@ -1,5 +1,6 @@
-# Transistor-AI
+# TransistorAI
 End of Study project
+
 
 A five-week, research-first project on English-to-German neural machine translation, technical-domain adaptation, and quality evaluation. The project starts with a small Streamlit translation MVP, then compares a pretrained NMT baseline, supervised fine-tuned models, and a multilingual LLM.
 
