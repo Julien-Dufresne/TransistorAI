@@ -9,3 +9,9 @@ A saved, pretrained machine translation model, including its learned weights and
 
 **Encoder-decoder Transformer**:  
 A model architecture with two parts. The encoder reads the input sentence and builds a representation of it; the decoder uses that representation to generate the translated sentence, token by token.
+
+**Transformer**:  
+A neural network architecture that processes text using attention. It can model relationships between words or tokens across a sentence, and it powers models such as MarianMT.  
+
+**Attention**:  
+A mechanism that lets the model weigh which other tokens are most relevant when interpreting or generating a particular token. In translation, the decoder can use attention to connect a German word it is generating with relevant parts of the English input.
