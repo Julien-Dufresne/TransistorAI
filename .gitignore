@@ -22,9 +22,8 @@ data/raw/
 data/processed/
 *.parquet
 *.arrow
-*.jsonl
 *.tsv
-*.csv
+
 
 # Local notebooks and editor files
 .ipynb_checkpoints/
