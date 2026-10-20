@@ -76,3 +76,13 @@ Reference-based COMET typically receives three inputs:
 - May exhibit biases.
 - Can overlook severe individual errors.
 - Requires careful evaluation of the evaluator itself.
+
+## Libraries we will use:
+**PyTorch**: Runs the neural network. 
+**Transformers**: Load the pretrained model and generate translations
+**SentencePiece**: Tokenization required by Marian
+**Sacremoses**: Text Preprocessing dependencies
+**Pandas** Store and analyze experimental results
+
+# Baseline model
+We will use Helsinki-NLP/opus-mt-en-de which is a good baseline model for translation. It uses MarianMT, a Transformer encoder–decoder architecture trained for English-to-German translation

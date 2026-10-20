@@ -1,0 +1,10 @@
+{
+  "model_id": "Helsinki-NLP/opus-mt-de-en",
+  "device": "mps",
+  "decoding": {
+    "num_beams": 4,
+    "do_sample": false,
+    "max_new_tokens": 128
+  },
+  "torch_version": "2.14.1"
+}
