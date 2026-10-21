@@ -174,7 +174,7 @@ with translate_tab:
     # by the user.
     source_text = st.text_area(
         "Enter German text:",
-        value="Das maschinelle Lernmodell sagt das nächste Wort voraus.",
+        value="Enter your text in German here",
         height=120,
     )
 
