@@ -1,0 +1,2 @@
+timestamp_utc,language_pair,source,translation,model_id,latency_ms
+2026-10-21T10:10:17.905555+00:00,de-en,"Ich freue mich, Sie kennenzulernen.",I'm glad to meet you.,Helsinki-NLP/opus-mt-de-en,953.71

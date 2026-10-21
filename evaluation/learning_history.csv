@@ -1,0 +1,2 @@
+timestamp_utc,exercise_id,english_source,user_translation,model_translation,focus,similarity_percent
+2026-10-21T10:40:04.830872+00:00,E001,The application crashed after the update.,Die Application geendete nach die Update.,Die Anwendung ist nach dem Update abgestürzt.,Past tense and technical vocabulary,46.2
