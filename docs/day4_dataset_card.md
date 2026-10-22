@@ -7,65 +7,65 @@ It is used exclusively for evaluation, not fine tuning.
 
 **Preprocessing**: Encoding repairs using ftfy, Unicode normalization, filtering and deduplication.
 
-**Dataset statistics**: 
-TRAIN
-sentence_pairs: 109447
-avg_source_words: 10.75
-avg_target_words: 10.32
-max_source_words: 100
-max_target_words: 100
-duplicate_pairs: 0
+**Dataset statistics**:   
+TRAIN. 
+sentence_pairs: 109447. 
+avg_source_words: 10.75. 
+avg_target_words: 10.32. 
+max_source_words: 100. 
+max_target_words: 100. 
+duplicate_pairs: 0. 
 
-VALIDATION
-sentence_pairs: 13615
-avg_source_words: 10.8
-avg_target_words: 10.35
-max_source_words: 100
-max_target_words: 100
-duplicate_pairs: 0
+VALIDATION. 
+sentence_pairs: 13615. 
+avg_source_words: 10.8. 
+avg_target_words: 10.35. 
+max_source_words: 100. 
+max_target_words: 100. 
+duplicate_pairs: 0. 
 
-TECHNICAL_TEST
-sentence_pairs: 13652
-avg_source_words: 10.65
-avg_target_words: 10.28
-max_source_words: 100
-max_target_words: 99
-duplicate_pairs: 0
+TECHNICAL_TEST. 
+sentence_pairs: 13652. 
+avg_source_words: 10.65. 
+avg_target_words: 10.28. 
+max_source_words: 100. 
+max_target_words: 99. 
+duplicate_pairs: 0. 
 
-GENERAL_TEST
-sentence_pairs: 1997
-avg_source_words: 21.05
-avg_target_words: 21.08
-max_source_words: 63
-max_target_words: 73
-duplicate_pairs: 0
+GENERAL_TEST.  
+sentence_pairs: 1997. 
+avg_source_words: 21.05. 
+avg_target_words: 21.08. 
+max_source_words: 63. 
+max_target_words: 73. 
+duplicate_pairs: 0. 
 
 **Splitting methodology**: 
 Splitting the technical dataset: 80% training, 10% validation, 10% technical testing
 
 
 **Quality checks**: 
---- TRAIN ---
-Sentence pairs: 109,447
-Duplicate pairs: 0
-Missing values: 0
+--- TRAIN ---  
+Sentence pairs: 109,447. 
+Duplicate pairs: 0  
+Missing values: 0. 
 
---- VALIDATION ---
-Sentence pairs: 13,615
-Duplicate pairs: 0
-Missing values: 0
+--- VALIDATION ---  
+Sentence pairs: 13,615. 
+Duplicate pairs: 0. 
+Missing values: 0. 
 
---- TECHNICAL_TEST ---
-Sentence pairs: 13,652
-Duplicate pairs: 0
-Missing values: 0
+--- TECHNICAL_TEST ---  
+Sentence pairs: 13,652. 
+Duplicate pairs: 0. 
+Missing values: 0. 
 
---- GENERAL_TEST ---
-Sentence pairs: 1,997
-Duplicate pairs: 0
-Missing values: 0
+--- GENERAL_TEST ---  
+Sentence pairs: 1,997. 
+Duplicate pairs: 0. 
+Missing values: 0. 
 
---- CROSS-DATASET OVERLAP ---
+--- CROSS-DATASET OVERLAP ---  
 train vs validation: 0 shared source sentences
 train vs technical_test: 0 shared source sentences
 train vs general_test: 0 shared source sentences
@@ -80,8 +80,127 @@ technical_test vs general_test: 0 shared source sentences
 - long sentences
 
 *Potential translation errors, short UI strings, domain differences and remaining near-duplicates.*
+example 1: TRAIN_027,train,80386,Alarm Configuration,Einstellungen für die Erinnerung@info:whatsthis
+
+Example 2: TRAIN_033,train,76246,
+%1 zettajoules,%1 Zettajouleamount in units (integer)
+> Translation do not seems to match - extra words
 
 
+Example 3: VALIDATION_002,validation,12810,*** 
+You have kicked %1 from %2 (%3),"nickname, nickname, channel"
+> Translation do not seems to match
+
+
+example 4: VALIDATION_005,validation,3780,
+& kwalletmanager;,& kwalletmanager;
+> Translation do not seems to match
+
+example 5: VALIDATION_023,validation,7042,
+(c) 1997 - 2005 Mouse developers,(c) 1997 - 2005 Maus-Entwickler
+> Potential trademark issue
+
+ example 6: TECHNICAL_TEST_013,technical_test,8962,
+ & IM Session,& Nachrichtenübermittlung
+> Translation do not seems to match
+
+ example 7:
+TECHNICAL_TEST_016,technical_test,6952,
+Acrobat Reader,Acrobat ReaderGenericName
+> Translation do not seems to match - extra word
+
+**Manual Quality Inspection** — KDE4
+
+Manual inspection of the KDE4 English–German parallel corpus identified several potential data quality issues:
+
+Metadata contamination: Localization context or field identifiers were appended to translations, including @info:whatsthis, GenericName, and unit descriptions.
+
+Misaligned or invalid translations: Some target fields contained placeholder descriptions instead of translated sentences.
+
+Nonlinguistic content: Some pairs consisted primarily of software entities or identifiers rather than natural-language sentences.
+
+Context-dependent translations: Certain UI strings could not be evaluated reliably without additional application context.
+
+Ambiguous terminology: Some software names and common nouns could not be distinguished confidently without context.
+
+Implications: These issues could introduce noise during fine-tuning and reduce the reliability of automatic translation metrics.
+
+Planned mitigation: Implement automated quality flags, review suspicious pairs, preserve legitimate placeholders, exclude confirmed invalid examples, and regenerate reproducible technical dataset splits.
+
+Limitation: The seven reported examples are a selected set of suspicious records, not a representative sample. Their frequency cannot be used to estimate the overall dataset error rate.
+
+
+**Data Cleaning and Quality Filtering**
+
+Technical Dataset — OPUS KDE4
+
+The technical-domain dataset was prepared using src/prepare_dataset.py, which implements a reproducible preprocessing and quality-filtering pipeline.
+
+Initial preprocessing
+
+The original aligned English–German corpus contained 224,035 sentence pairs.
+
+The following preprocessing operations were applied:
+
+Repair character encoding issues using ftfy and normalize Unicode text to NFC.
+
+Remove sentence pairs containing empty source or target text.
+
+Remove exact duplicate source–target pairs.
+
+Exclude sentence pairs outside the configured word-length range (2–100 words).
+
+After these operations, 136,714 sentence pairs remained.
+
+Automated quality filtering
+
+A detect_quality_issues() function was added to src/prepare_dataset.py to detect and exclude potentially problematic sentence pairs.
+
+Three categories of issues are identified:
+
+Metadata contamination: KDE localization metadata and extraction artifacts, including patterns such as @info:, @item:, @title:, GenericName, and .kgm filename suffixes.
+
+Placeholder mismatch: Inconsistent numbered placeholders (such as %1 and %2) between source and target translations.
+
+Identical source and target: Sentence pairs containing exactly the same text in both languages.
+
+All flagged sentence pairs are excluded before creating the training, validation and technical test splits.
+
+The excluded records and their quality flags are saved in removed_quality_flags.csv to support traceability and reproducibility.
+
+Filtering statistics
+
+Metric
+
+Sentence pairs
+
+Original aligned pairs
+
+224,035
+
+After deduplication and length filtering
+
+136,714
+
+Removed by automated quality filtering
+
+[Insert final count]
+
+Remaining after quality filtering
+
+[Insert final count]
+
+Limitations
+
+Automated filtering uses heuristic rules and does not guarantee that all remaining translations are correct. Some valid examples, including untranslated product names and technical terms, may also be excluded.
+
+The corpus is additionally reviewed through reproducible random sampling and manual annotation of translation quality.
+
+Dataset Splitting
+
+After quality filtering, the technical dataset is split into training, validation and technical test subsets using a fixed random seed (42) and an approximately 80/10/10 split.
+
+Splitting is grouped by English source text to reduce exact source overlap between subsets.
 
 **Licences**: 
  Corpus Name: KDE4

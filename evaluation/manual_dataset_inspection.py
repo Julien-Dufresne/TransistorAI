@@ -34,7 +34,7 @@ for name, path in DATASETS.items():
 
     sample = df.sample(
         n=min(SAMPLE_SIZES[name], len(df)),
-        random_state=42
+        random_state=7
     ).copy()
 
     sample["dataset"] = name
