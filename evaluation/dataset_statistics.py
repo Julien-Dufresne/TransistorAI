@@ -47,7 +47,7 @@ for name, path in datasets.items():
         print(f"{key}: {value}")
 
 # STEP 4 - Save results
-output_path = RESULTS_DIR / "day_4_dataset_statistics.json"
+output_path = RESULTS_DIR / "day4_dataset_statistics.json"
 
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(statistics, f, indent=4, ensure_ascii=False)

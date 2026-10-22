@@ -1,26 +1,26 @@
 {
     "train": {
-        "sentence_pairs": 109447,
-        "avg_source_words": 10.75,
-        "avg_target_words": 10.32,
+        "sentence_pairs": 102205,
+        "avg_source_words": 11.2,
+        "avg_target_words": 10.7,
         "max_source_words": 100,
         "max_target_words": 100,
         "duplicate_pairs": 0
     },
     "validation": {
-        "sentence_pairs": 13615,
-        "avg_source_words": 10.8,
-        "avg_target_words": 10.35,
+        "sentence_pairs": 12722,
+        "avg_source_words": 11.4,
+        "avg_target_words": 10.83,
         "max_source_words": 100,
         "max_target_words": 100,
         "duplicate_pairs": 0
     },
     "technical_test": {
-        "sentence_pairs": 13652,
-        "avg_source_words": 10.65,
-        "avg_target_words": 10.28,
+        "sentence_pairs": 12718,
+        "avg_source_words": 11.27,
+        "avg_target_words": 10.75,
         "max_source_words": 100,
-        "max_target_words": 99,
+        "max_target_words": 98,
         "duplicate_pairs": 0
     },
     "general_test": {
