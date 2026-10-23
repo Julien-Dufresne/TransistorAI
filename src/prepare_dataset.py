@@ -132,18 +132,31 @@ def detect_quality_issues(row):
     target = str(row["target"])
 
     # 1. Detect KDE metadata contamination
+    
     metadata_patterns = [
-        r"@[A-Za-z]+:",  # New KDE metadata pattern
-        r"@action\b",
-        r"@label\b",
-        r"GenericName$",
-        r"NAME OF TRANSLATORS",
-        r"ROLES_OF_TRANSLATORS",
-        r"amount in units \(integer\)",
-        r"the unit 1 per second",
-        r"\.kgm$",
-        r"Widget name\. This string",
-    ]
+    # KDE annotations
+    r"@[A-Za-z]+:",
+    r"@action\b",
+    r"@label\b",
+
+    # Existing extraction artifacts
+    r"GenericName$",
+    r"NAME OF TRANSLATORS",
+    r"ROLES_OF_TRANSLATORS",
+    r"amount in units \(integer\)",
+    r"the unit 1 per second",
+    r"\.kgm$",
+    r"Widget name\. This string",
+
+    # Newly discovered artifacts
+    r"No value has been set$",
+    r"default price mode$",
+    r"City in Newfoundland Canada$",
+    r"show help$",
+
+    # Appended KDE Name field
+    r"(?<=[a-zäöüß])Name$",
+]
 
     if any(
         re.search(pattern, target, re.IGNORECASE)
