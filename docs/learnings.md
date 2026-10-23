@@ -86,3 +86,29 @@ Reference-based COMET typically receives three inputs:
 
 # Baseline model
 We will use Helsinki-NLP/opus-mt-en-de which is a good baseline model for translation. It uses MarianMT, a Transformer encoder–decoder architecture trained for English-to-German translation
+
+# Conda environment: 
+It is an isolated workspace on my computer where we can install a specific version of Python and the libraries needed for a project. It is important to keep project independant from each other. 
+- Project folder >>> Stores my code, datasets, notebooks and results
+- Conda environment >>> Provides Python and installed libraries
+- VS Code >>> Editor where we write and run codes
+- GitHub >>> Stores and versions our project files
+
+-- 22.10.26 --
+
+# OPUS KDE4 dataset: 
+It is a widely used multilingual parallel corpus consisting of localized text and documentation from the KDE4 open-source desktop environment package. It serves as a foundational benchmark dataset for training and fine-tuning Machine Translation (MT) models, specifically within technical or software localization domains.
+It features 92 languages and counts over 224.7 million tokens overall.
+
+# OPUS GNOME dataset:
+It is a massive, open-source multilingual parallel corpus created by compiling localized interface text, user manuals, and system documentation from the GNOME desktop environment package.
+It is highly technical data consisting of software strings (buttons, drop-down menus, system messages) and comprehensive desktop user manuals. This makes it rich in technical terminology and concise, actionable phrasing.
+It features 100s of languages and includes 1.7 billion sentences. 
+
+# unicodedata module
+It is a built-in library in Python that provides direct access to the official Unicode Character Database (UCD). It allows to query character names, determine character properties (for example if a character is a digit or a symbol), and normalize text to prevent issues with characters that look identical but have different code points. 
+
+# assert statement with Python:
+It is a statement to perform data integrity checks and it tests a condition: 
+- if the condition evaluates to True, the code silently moves to the next line
+- if the condition evaluates to False, the code crashes immediately with an AssertionError, halting the pipeline

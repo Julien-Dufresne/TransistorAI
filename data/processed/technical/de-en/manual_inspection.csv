@@ -1,0 +1,31 @@
+source,target
+Copy Url,URL kopieren
+"From version 3.3 onwards, & kde; provides a session management system which allows you to switch between different user account on one computer. You can stay logged in and & eg; let your sister, brother, wife, neigbour or whoever read her or his emails just for a moment. Before you had to log off (therefore & eg; close programs or save documents) and let her or him log in.","Seit Version 3.3 von & kde; können Sie zwischen verschiedenen Benutzer-Konten auf einem Computer wechseln. Sie können dabei angemeldet bleiben, sodass jemand anderes beispielsweise nur kurz seine Emails lesen kann. Früher mussten Sie sich abmelden (also alle Anwendungen beenden oder alle Dokumente speichern) und die andere Person musste sich neu anmelden."
+REGEXPRE(text; regexp; replacement),"REGEXPRE(Text, regulärer Ausdruck, Ersetzungstext)"
+Dragon Player could not open the file: %1,Dragon Player kann die Datei nicht öffnen: %1
+This copies the currently selected text to the clipboard so that it may be pasted elsewhere. The clipboard is a feature of & kde; that works invisibly to provide a way to transfer data between applications.,"Kopiert den ausgewählten Text in die Zwischenablage, so dass dieser an einer anderen Stelle eingefügt werden kann. Die Zwischenablage ist ein Teil von KDE, das unsichtbar arbeitet und eine Möglichkeit bereitstellt, Daten zwischen Anwendungen zu übertragen."
+Report Designer,Verbindung 02Name
+Whether or not to show the peers tab in the bottom of the window.,"Gibt an, ob das Gegenstellen-Unterfenster im unteren Bereich des Fensters angezeigt wird."
+Color of function 4,Farbe für Funktion4
+Cycle seconds,Dauer eines Drehzykluses
+Start at line:,Starten bei Zeile:
+Show & Grid,& Gitter anzeigen
+Multiple pages:,NAME OF TRANSLATORS
+Checks if the string contains the given substring.,"Prüft, ob die Zeichenkette die angegebene Subzeichenkette enthält."
+Close Active Terminal,Aktives Terminal schließen@action
+"Back face. In English, B is for Back.",Rückseite (B für Back).
+The options will be saved automatically.,Shisen-Sho ist ein Brettspiel ähnlich Mahjongg für & kde;.
+"%1: %2 new, %3 displayed","%1: %2 neu, %3 angezeigt"
+Convert space characters to,Leerzeichen umwandeln in
+Conventions used in this book,Konventionen dieses Benutzerhandbuchs
+"Core and conduits Developer, Maintainer","Entwickler von Basis- und Abgleichmodulen, Betreuer"
+Configuring Sentence Boundary Detector Filters,Einrichtung der Satzgrenzenerkennungsfilter
+the type of this word,Pfeil links
+"In addition to the config keys listed above, a key filter may also have an id and match-contexts.",Zusätzlich zu den oben genannten Konfigurationsschlüsseln kann ein Schlüsselfilter auch noch die Attribute id und match-contexts haben.
+Let us have look at the Editor now. The contents of the article to which we want to reply has already been copied to the Editor by & knode;; to indicate the text is a quote every line is prefixed with a gt;.,"Betrachten wir nun das Editorfenster. & knode; hat den kompletten Inhalt des Artikels, auf den wir antworten möchten, in den Editor kopiert. Um den Inhalt als Zitat zu kennzeichnen, wird vor jede Zeile ein zusätzliches gt; gesetzt."
+Map to online account,Einem Onlinekonto zuordnen
+Using %1 as %2.,%1 wird als %2 benutzt.
+Settings Configure & parley;...,Das Menü Einstellungen
+"p, li {white-space: pre-wrap;} Process's priority is based on the CPU priority.","p, li {white-space: pre-wrap;} Prozesspriorität ist der CPU-Priorität angeglichen."
+"Here you can select which browser is used for displaying links you clicked on in a message. Currently, you can either select the Netscape Navigator or the default, & konqueror;; the selected browser has to be installed, of course.","Hier können Sie auswählen, welcher Browser zum Anzeigen der Links aufgerufen wird, wenn Sie diese in einer Nachricht mit der Maus anklicken. Es gibt derzeit u. a. die Möglichkeit Netscape oder & konqueror; zu starten. Natürlich muss der betreffende Browser installiert sein."
+"This part will describe all available attributes for contexts, itemDatas, keywords, comments, code folding and indentation.","Dieser Teil beschreibt alle verfügbaren Eigenschaften für Kontexte, itemDatas, Schlüsselwörter, Kommentare, Codeausblendungen und Einrückungen."
