@@ -112,3 +112,17 @@ It is a built-in library in Python that provides direct access to the official U
 It is a statement to perform data integrity checks and it tests a condition: 
 - if the condition evaluates to True, the code silently moves to the next line
 - if the condition evaluates to False, the code crashes immediately with an AssertionError, halting the pipeline
+
+# out-of-domain evaluation
+Also called OOD evaluation, is a method used in Machine Learning to test how well a model performs on data that is different from the data it was trained on. The goal being to measure the model's ability to generalize to unfamiliar domains, rather than simply perform well on familiar data. 
+
+## Day 5 - Understand the evaluation metrics
+
+# BLEU: Bilingual Evaluation Understudy
+Measures how much the model's translation overlaps with a human reference translation, using word sequences (n-grams) and a brevity penalty.
+Useful for comparing translation systems on the same dataset.
+
+# chrF — Character n-gram F-score
+Measures character-sequence overlap between the generated translation and the reference.
+Particularly useful for German, where compound words and inflected forms can make exact word matching difficult.
+
