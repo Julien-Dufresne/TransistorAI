@@ -121,6 +121,8 @@ print("Remaining pairs:", len(df))
 
 
 
+
+
 import re
 
 def detect_quality_issues(row):
@@ -129,14 +131,18 @@ def detect_quality_issues(row):
     source = str(row["source"])
     target = str(row["target"])
 
-    # 1. KDE localization metadata
+    # 1. Detect KDE metadata contamination
     metadata_patterns = [
-        r"@info:",
-        r"@item:",
-        r"@title:",
+        r"@[A-Za-z]+:",  # New KDE metadata pattern
+        r"@action\b",
+        r"@label\b",
         r"GenericName$",
+        r"NAME OF TRANSLATORS",
+        r"ROLES_OF_TRANSLATORS",
         r"amount in units \(integer\)",
+        r"the unit 1 per second",
         r"\.kgm$",
+        r"Widget name\. This string",
     ]
 
     if any(
@@ -145,7 +151,7 @@ def detect_quality_issues(row):
     ):
         issues.append("metadata_contamination")
 
-    # 2. Placeholder mismatch
+    # 2. Detect placeholder mismatches
     placeholder_pattern = r"%\d+"
 
     source_placeholders = sorted(
@@ -159,11 +165,23 @@ def detect_quality_issues(row):
     if source_placeholders != target_placeholders:
         issues.append("placeholder_mismatch")
 
-    # 3. Identical source and target
+    # 3. Detect identical source and target
     if source == target:
         issues.append("identical_source_target")
 
+    # 4. Detect suspicious sentence length ratios
+    source_words = len(source.split())
+    target_words = len(target.split())
+
+    if source_words > 0:
+        length_ratio = target_words / source_words
+
+        if length_ratio < 0.2 or length_ratio > 2.5:
+            issues.append("extreme_length_ratio")
+
     return ";".join(issues)
+
+
 
 
 # ============================================================
