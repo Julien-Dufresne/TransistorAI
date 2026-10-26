@@ -126,3 +126,62 @@ Useful for comparing translation systems on the same dataset.
 Measures character-sequence overlap between the generated translation and the reference.
 Particularly useful for German, where compound words and inflected forms can make exact word matching difficult.
 
+## Day 6: 
+
+# Tokenization during translation: 
+A translation model does not directly process words when translating. Instead, it processes numerical representations called token IDs. Example: "Der Motor funktionert nicht" => "The motor is not working"
+'__Der' (ID 1), '_Motor' (ID 2), '_functioniert' (ID 3), '_nicht' (ID 4), '.' (ID 5)   
+
+For supervised ML, the tokenizer prepares two different elements: 
+- input_ids: tokens IDs representing the German source sentence
+- labels: token IDs representing the expected English translation
+
+Tokenization target becomes labels during training. 
+
+# inputs_ids: What the model reads
+It is what the model reads. They are the numerical IDs representing the source sentence. Each ID corresponds to a token in the tokenizer's vocabulary. A token might represent a whole word, part of a word, punctuation or a special symbol. Neural networks operate on numerical representations rather than raw text. 
+
+The model converts token IDs into learned vector representation called embeddings. 
+
+# attention_mask Which positions contain real tokens
+
+Sentence: "Der Motor funktioniert."
+**input_ids**:      125, 842, 394, 5, 0, 58100, 58100, 58100
+
+**attention_mask**: 1,   1,   1,   1, 1, 0,     0,     0
+
+1 = real token, 0 = padding
+
+As sentences have different lengths, when preparing a batch, the tokenizer or data collator may add padding tokens so the tensors have consistent dimensions. 
+
+The model uses the attention mask to prevent padding positions from influencing its attention calculations.
+
+# labels What the model should learn to predict
+labels contain the token IDs of the correct English translation.
+
+During training, the model compares its predictions with these labels and calculates a loss.
+
+A subtle but important point: training loss is not calculated by directly comparing two finished text strings. It is generally calculated using token-level cross-entropy between predicted probabilities and the reference token IDs.
+
+When labels are padded, DataCollatorForSeq2Seq typically replaces padded label positions with -100, which tells PyTorch to ignore them when calculating loss.
+
+# text_target Telling the tokenizer to process target text
+
+text_target is not a tensor or model input key. It is an argument of the Hugging Face tokenizer.
+
+It tells the tokenizer that the provided sentences are target translations.
+This matters because some sequence-to-sequence tokenizers apply different processing rules to source and target languages, such as language-specific special tokens.
+
+For your German–English MarianMT model, you use it to tokenize the English reference sentences appropriately.
+
+# Understanding the hyperparameters, including initial values in (), and purpose:
+- Seed (42):                Makes random operations more reproducible
+- Optimizer (adamw_torch):  Algorithm that adjusts model weights
+- Learning rate (2e-5):     How large the weight updates are
+- Batch size (4) :          Number of translation pairs processed per device in one forward/backward step
+- Gradient accumulation (2): Combines gradients from 2 batches before updating weights
+- Epochs (3):               Number of complete passes through training data
+- Max source length (128):  Maximum input tokens
+- Max target length (128):  Maximum reference translation tokens during training
+- Checkpoint (Every epoch): Saves model state for recovery or comparison
+

@@ -17,6 +17,7 @@ translation quality across technical and general domains.
 
 ## Evaluation methodology
 
+- Models: Helsinki-NLP/opus-mt-en-de and Helsinki-NLP/opus-mt-de-en
 - Corpus-level SacreBLEU BLEU and chrF
 - Held-out technical and general-domain test sets
 - Fixed decoding configuration
@@ -92,3 +93,6 @@ BLEU and chrF do not fully measure:
 2. Analyze terminology and semantic errors.
 3. Prepare domain-specific fine-tuning experiments.
 4. Compare fine-tuned models against this baseline.
+
+
+python -m pip install accelerate
