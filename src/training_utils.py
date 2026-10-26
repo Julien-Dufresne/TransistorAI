@@ -5,6 +5,7 @@ import pandas as pd
 from datasets import Dataset
 
 
+
 def load_translation_dataset(
     csv_path,
     source_column="source",
@@ -96,44 +97,3 @@ def truncation_report(dataset, tokenizer, column, max_length):
         "truncation_rate": truncated / len(lengths) if lengths else 0,
         "maximum_length": max(lengths, default=0),
     }
-
-# Inspect batch shapes.
-# This function checks whether tokenized examples
-# can be correctly combined into training batches.
-
-from transformers import DataCollatorForSeq2Seq
-from torch.utils.data import DataLoader
-
-
-def inspect_batch_shapes(
-    tokenized_dataset,
-    tokenizer,
-    model,
-    batch_size=4,
-):
-    """Inspect the shapes of a tokenized training batch."""
-
-    # 1. Create a data collator.
-    # It dynamically pads source and target sequences.
-    collator = DataCollatorForSeq2Seq(
-        tokenizer=tokenizer,
-        model=model,
-        padding=True,
-    )
-
-    # 2. Create a DataLoader.
-    # It groups examples into batches.
-    loader = DataLoader(
-        tokenized_dataset,
-        batch_size=batch_size,
-        collate_fn=collator,
-    )
-
-    # 3. Retrieve the first batch.
-    batch = next(iter(loader))
-
-    # 4. Display the shape of each tensor.
-    for key, value in batch.items():
-        print(f"{key}: {value.shape}")
-
-    return batch
