@@ -38,5 +38,4 @@ Add findings from day7_manual_inspection.csv.
 
 ## Conclusion
 
-Assess technical gains and general-domain trade-offs
-after reviewing automatic and manual evaluation.
+As both results improve (both technical and general), fine-tuning may provide broader improvements, not just technical specialization. 

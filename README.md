@@ -67,3 +67,8 @@ This project is designed to demonstrate work relevant to the Machine Learning Re
 ## Status
 
 Project scaffold created. Implementation work begins with Week 1, Day 1 in the checklist.
+
+## Launch the app:
+python -m streamlit run streamlit_app.py
+
+conda activate transistorai-env
