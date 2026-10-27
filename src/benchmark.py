@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 DATA_DIR = ROOT / "data" / "processed"
 RESULTS_DIR = ROOT / "results"
-CONFIG_PATH = ROOT / "evaluation" / "metric_config.json"
+CONFIG_PATH = ROOT / "configs" / "metric_config.json"
 
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
