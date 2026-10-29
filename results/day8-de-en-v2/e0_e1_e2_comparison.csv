@@ -1,0 +1,7 @@
+domain,bleu,chrf,experiment
+technical,35.1068,57.9039,E0
+general,40.4083,65.4857,E0
+technical,40.5126,61.8439,E1
+general,30.6843,57.3025,E1
+technical,39.8935,61.4829,E2
+general,35.6534,61.6582,E2

@@ -1,0 +1,26 @@
+{
+  "experiment_name": "day8_e2_mixed_de_en",
+  "language_pair": "de-en",
+  "model_path": "results/day8-de-en-v2/mixed-finetuned/final_model",
+  "baseline_scores_path": "results/day5_scores.csv",
+  "datasets": {
+    "technical": "data/processed/technical/de-en/technical_test.csv",
+    "general": "data/processed/general/de-en/general_test.csv"
+  },
+  "source_column": "source",
+  "target_column": "target",
+  "decoding": {
+    "num_beams": 4,
+    "do_sample": false,
+    "max_new_tokens": 128,
+    "batch_size": 8
+  },
+  "output": {
+    "predictions": "results/day8-de-en-v2/e2_evaluation/predictions.csv",
+    "scores": "results/day8-de-en-v2/e2_evaluation/scores.csv",
+    "comparison": "results/day8-de-en-v2/e2_evaluation/comparison.csv",
+    "report": "results/day8-de-en-v2/e2_evaluation/evaluation_report.md",
+    "comparison_report": "results/day8-de-en-v2/e2_evaluation/comparison_report.md"
+  },
+  "seed": 42
+}

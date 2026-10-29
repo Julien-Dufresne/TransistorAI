@@ -19,6 +19,9 @@ import pandas as pd
 import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
+# Allows users to supply configuration paths through the terminal.
+import argparse
+
 # Reuse the exact SacreBLEU implementation from Day 5.
 from evaluation.metrics import calculate_metrics
 
@@ -26,7 +29,8 @@ from evaluation.metrics import calculate_metrics
 # STEP 1 — Define project paths.
 ROOT = Path(__file__).resolve().parents[1]
 
-CONFIG_PATH = ROOT / "configs" / "day7_eval_config.json"
+# Default configuration used when no custom configuration is supplied.
+DEFAULT_CONFIG_PATH = ROOT / "configs" / "day7_eval_config.json"
 DAY5_CONFIG_PATH = ROOT / "configs" / "metric_config.json"
 
 
@@ -72,12 +76,55 @@ def translate_batch(texts, tokenizer, model, device, decoding):
     )
 
 
+def parse_arguments():
+    """
+    Read command-line arguments.
+
+    Example:
+        python evaluation/evaluate_finetuned.py \
+            --config configs/day8_e1_eval_config.json
+    """
+
+    # Create the argument parser.
+    parser = argparse.ArgumentParser(
+        description="Evaluate a fine-tuned translation model."
+    )
+
+    # Allow a custom evaluation configuration.
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=DEFAULT_CONFIG_PATH,
+        help="Path to the evaluation configuration JSON file.",
+    )
+
+    # Return the parsed arguments.
+    return parser.parse_args()
+
 def main():
     """Evaluate the fine-tuned model and export results."""
 
     # STEP 2 — Load the Day 7 evaluation configuration.
-    with CONFIG_PATH.open(encoding="utf-8") as file:
+    # Read command-line arguments.
+    args = parse_arguments()
+
+    # Resolve relative configuration paths against the project root.
+    config_path = Path(args.config)
+
+    if not config_path.is_absolute():
+        config_path = ROOT / config_path
+
+    # Check that the configuration exists before starting evaluation.
+    if not config_path.is_file():
+        raise FileNotFoundError(
+            f"Evaluation configuration not found: {config_path}"
+        )
+
+    # Load the selected experiment configuration.
+    with config_path.open(encoding="utf-8") as file:
         config = json.load(file)
+
+    print(f"Using evaluation configuration: {config_path}")
 
     # STEP 3 — Load the original Day 5 metric configuration.
     with DAY5_CONFIG_PATH.open(encoding="utf-8") as file:

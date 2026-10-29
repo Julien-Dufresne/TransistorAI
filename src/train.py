@@ -1,5 +1,5 @@
 #day 6: Creating the main training script, using the functions created in src/training_utils.py and using the configuration from configs/training_config.json
-
+import argparse
 import json
 from pathlib import Path
 
@@ -22,11 +22,81 @@ from src.training_utils import (
 # inspect_batch_shapes was removed because it does not exist.
 # The script already prints sample batch shapes directly.
 
+def parse_arguments():
+    """
+    Read command-line arguments.
 
+    Allows each experiment to select its own JSON configuration
+    instead of always using configs/training_config.json.
+    """
+
+    parser = argparse.ArgumentParser(
+        description="Train a TransistorAI translation model."
+    )
+
+    # Require an explicit configuration to prevent accidentally
+    # running E1 when E2 was intended.
+    parser.add_argument(
+        "--config",
+        type=Path,
+        required=True,
+        help="Path to the experiment's training configuration JSON.",
+    )
+
+    return parser.parse_args()
+    
 def main():
-    # STEP 1 — Load the experiment configuration.
-    with open("configs/training_config.json") as file:
+    # STEP 1 — Read the selected experiment configuration.
+    args = parse_arguments()
+
+    # Check that the requested configuration exists.
+    if not args.config.is_file():
+        raise FileNotFoundError(
+            f"Training configuration not found: {args.config}"
+        )
+
+    # Load the selected JSON configuration.
+    with args.config.open("r", encoding="utf-8") as file:
         config = json.load(file)
+
+    # STEP 1A — Validate dataset and output paths.
+    train_path = Path(config["train_path"])
+    validation_path = Path(config["validation_path"])
+    checkpoint_dir = Path(config["output_dir"])
+    run_dir = Path(config["run_dir"])
+
+    # Stop immediately if a required dataset is missing.
+    for dataset_path in [train_path, validation_path]:
+        if not dataset_path.is_file():
+            raise FileNotFoundError(
+                f"Dataset not found: {dataset_path}"
+            )
+
+    # Prevent overwriting a completed experiment.
+    if (run_dir / "final_model").exists():
+        raise FileExistsError(
+            f"Final model already exists: {run_dir / 'final_model'}"
+        )
+
+    # Prevent accidental reuse of an existing checkpoint directory.
+    if checkpoint_dir.exists() and any(checkpoint_dir.iterdir()):
+        raise FileExistsError(
+            f"Checkpoint directory is not empty: {checkpoint_dir}"
+        )
+
+    # Display the selected experiment before loading the model.
+    print("\n" + "=" * 60)
+    print("TRANSISTORAI — TRAINING CONFIGURATION")
+    print("=" * 60)
+    print(f"Configuration: {args.config}")
+    print(f"Pretrained model: {config['model_id']}")
+    print(f"Training dataset: {train_path}")
+    print(f"Validation dataset: {validation_path}")
+    print(f"Checkpoints: {checkpoint_dir}")
+    print(f"Final results: {run_dir}")
+    print(f"Epochs: {config['num_train_epochs']}")
+    print("=" * 60 + "\n")
+
 
     # STEP 2 — Set random seeds for reproducibility.
     set_seed(config["seed"])
