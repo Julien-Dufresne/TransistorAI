@@ -1,6 +1,0 @@
-name: transistorai-env
-channels:
-  - defaults
-dependencies:
-  - python=3.11
-prefix: /opt/anaconda3/envs/transistorai-env

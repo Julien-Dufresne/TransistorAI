@@ -1,5 +1,0 @@
-timestamp_utc,exercise_id,english_source,user_translation,model_translation,focus,similarity_percent
-2026-10-21T10:40:04.830872+00:00,E001,The application crashed after the update.,Die Application geendete nach die Update.,Die Anwendung ist nach dem Update abgestürzt.,Past tense and technical vocabulary,46.2
-2026-10-21T11:25:00.633900+00:00,E002,I have been learning German for two years.,Ich lerne Deutsch vor zwei Jahren. ,Seit zwei Jahren lerne ich Deutsch.,Present tense and time expressions,33.3
-2026-10-21T11:53:10.445458+00:00,E002,I have been learning German for two years.,"Seit zwei Jahren, lerne ich Deutsch",Seit zwei Jahren lerne ich Deutsch.,Present tense and time expressions,100.0
-2026-10-22T08:52:54.947133+00:00,E002,I have been learning German for two years.,Ich lerne Deutsch zeit zwei Jahren.,Seit zwei Jahren lerne ich Deutsch.,Present tense and time expressions,33.3

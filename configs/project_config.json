@@ -1,0 +1,18 @@
+{
+  "project_name": "TransistorAI",
+  "language_pair": "de-en",
+  "source_language": "de",
+  "target_language": "en",
+  "model_id": "Helsinki-NLP/opus-mt-de-en",
+  "seed": 42,
+  "datasets": {
+    "technical_train": "data/processed/technical/de-en/train.csv",
+    "technical_validation": "data/processed/technical/de-en/validation.csv",
+    "technical_test": "data/processed/technical/de-en/technical_test.csv",
+    "general_test": "data/processed/general/de-en/general_test.csv"
+  },
+  "columns": {
+    "source": "source",
+    "target": "target"
+  }
+}

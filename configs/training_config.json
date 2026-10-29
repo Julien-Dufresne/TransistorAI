@@ -17,5 +17,6 @@
   "save_strategy": "epoch",
   "eval_strategy": "epoch",
   "save_total_limit": 2,
-  "output_dir": "models/checkpoints/de-en"
+  "output_dir": "models/checkpoints/de-en",
+  "run_dir": "results/day8-de-en-v2/technical-finetuned"
 }

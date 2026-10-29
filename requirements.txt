@@ -1,63 +1,20 @@
-Library	Purpose	Needed?
-torch	Run and fine-tune MarianMT	Yes
-transformers	Hugging Face translation models	Yes
-sentencepiece	MarianMT tokenization	Yes
-sacremoses	MarianMT text processing	Yes
-pandas	Dataset preparation and analysis	Yes
-numpy	Numerical operations	Yes
-ftfy	Repair text encoding problems	Missing
-streamlit	Interactive translator and exercises	Yes
-sacrebleu	BLEU and chrF evaluation	Yes
-safetensors	Model weight handling	Indirect dependency
-The missing ftfy is particularly relevant because your prepare_dataset.py uses it to repair encoding issues in KDE4.
-1. Issues I identified
-Package	Assessment	Action
-ftfy	Missing	Add it
-torch==2.14.1	Version not independently verified	Check installed version and availability
-transformers==5.20.2	Valid published release	Keep if your code works
-httpx2, httpcore2	Real packages, not typos	Keep if required indirectly
-accelerate	Missing	Add when implementing Hugging Face fine-tuning
-datasets	Missing	Useful for fine-tuning datasets
-evaluate	Missing	Optional evaluation framework
-scikit-learn	Missing	Only add if your code uses it
-I verified that Transformers 5.20.2 was published on October 19, 2026, and MarianMT remains documented in Transformers 5. 
-
-PyPI
-+1
-
-
- The httpx2 and httpcore2 packages are also legitimate. 
-
-PyPI
-+1
-
-
-
-2. Recommended simplified requirements.txt
-For your current translation demo, dataset preparation, evaluation and upcoming fine-tuning work, I would maintain a smaller list of direct dependencies:
-
-# TransistorAI - Python 3.11
-
-# Machine translation
+# Translation models and training
 torch
 transformers
 sentencepiece
 sacremoses
-
-# Data preparation
-pandas
-numpy
-ftfy
-
-# Translation evaluation
-sacrebleu
-
-# Fine-tuning (upcoming)
 accelerate
 datasets
 
-# Streamlit application
-streamlit
+# Dataset preparation
+pandas
+numpy
+ftfy
+scikit-learn
 
-# Utilities
-tqdm
+# Evaluation and Markdown reports
+sacrebleu
+tabulate
+
+# User interface
+streamlit

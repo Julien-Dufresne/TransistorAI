@@ -28,3 +28,15 @@ mlruns/
 .DS_Store
 .vscode/
 .idea/
+
+# Local backups: keep them outside Git history.
+/backups/
+# Recreated locally; publish aggregate research results only.
+/data/raw/
+/data/processed/
+/data/versions/
+/data/experiments/
+/results/**/final_model/
+/results/*predictions.csv
+/results/*manual_inspection.csv
+/evaluation/*.csv

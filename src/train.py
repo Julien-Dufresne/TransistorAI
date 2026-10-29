@@ -17,8 +17,10 @@ from src.training_utils import (
     load_translation_dataset,
     tokenize_dataset,
     truncation_report,
-    inspect_batch_shapes,
 )
+
+# inspect_batch_shapes was removed because it does not exist.
+# The script already prints sample batch shapes directly.
 
 
 def main():
@@ -147,29 +149,39 @@ def main():
         json.dump(config, file, indent=2)
 
     # STEP 12 — Train and save the final model.
-    trainer.train()
+    # Train and capture the training summary.
+    train_result = trainer.train()
 
-    
+    # Create this experiment's results directory.
+    run_dir = Path(config["run_dir"])
+    run_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save the final fine-tuned model.
-    trainer.save_model("results/final_model")
+    # Save the model and tokenizer together.
+    model_dir = run_dir / "final_model"
+    trainer.save_model(str(model_dir))
+    tokenizer.save_pretrained(str(model_dir))
 
-    # Save the tokenizer used for training.
-    tokenizer.save_pretrained("results/final_model")
+    # Save the configuration alongside the exported model.
+    with (run_dir / "training_config.json").open(
+        "w", encoding="utf-8"
+    ) as file:
+        json.dump(config, file, indent=2)
 
-    # Save training metrics.
-    
+    # Save detailed history and aggregate training metrics.
+    with (run_dir / "training_history.json").open(
+        "w", encoding="utf-8"
+    ) as file:
+        json.dump(trainer.state.log_history, file, indent=2)
 
-    Path("results").mkdir(exist_ok=True)
+    with (run_dir / "train_metrics.json").open(
+        "w", encoding="utf-8"
+    ) as file:
+        json.dump(train_result.metrics, file, indent=2)
 
-    with open("results/training_history.json", "w") as f:
-        json.dump(trainer.state.log_history, f, indent=2)
-
-    # STEP 13 — Save training metrics and logs.
-    trainer.save_metrics("train", trainer.state.log_history[-1])
+    trainer.save_metrics("train", train_result.metrics)
     trainer.save_state()
 
-    print("Training completed.")
+    print(f"Training completed. Model saved to: {model_dir}")
 
 
 if __name__ == "__main__":

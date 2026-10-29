@@ -8,18 +8,18 @@ Positive deltas indicate improvement; negative deltas indicate degradation.
 
 | Language | Domain | BLEU Baseline | BLEU Fine-Tuned | BLEU Delta | chrF Baseline | chrF Fine-Tuned | chrF Delta |
 |---|---|---:|---:|---:|---:|---:|---:|
-| de-en | technical | 9.1623 | 26.9278 | +17.7655 | 21.6315 | 54.0667 | +32.4352 |
-| de-en | general | 3.6273 | 8.7527 | +5.1254 | 24.1778 | 37.3184 | +13.1406 |
+| de-en | technical | 35.1068 | 40.5126 | +5.4058 | 57.9039 | 61.8439 | +3.9400 |
+| de-en | general | 40.4083 | 30.6843 | -9.7240 | 65.4857 | 57.3025 | -8.1832 |
 
 ## Interpretation
 
 ### de-en — technical
 
-- BLEU improved by 17.7655 points.
-- chrF improved by 32.4352 points.
+- BLEU improved by 5.4058 points.
+- chrF improved by 3.9400 points.
 
 ### de-en — general
 
-- BLEU improved by 5.1254 points.
-- chrF improved by 13.1406 points.
+- BLEU declined by 9.7240 points.
+- chrF declined by 8.1832 points.
 

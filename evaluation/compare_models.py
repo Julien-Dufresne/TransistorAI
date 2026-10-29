@@ -120,7 +120,7 @@ def main():
 
     # STEP 8 — Generate a Markdown comparison report.
     report_path = Path(
-        "results/day7_comparison_report.md"
+        config["output"]["comparison_report"]
     )
 
     # Define the columns displayed in the report.

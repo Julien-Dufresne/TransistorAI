@@ -6,5 +6,5 @@
     "do_sample": false,
     "max_new_tokens": 128
   },
-  "torch_version": "2.14.1"
+  "torch_version": "2.15.0"
 }

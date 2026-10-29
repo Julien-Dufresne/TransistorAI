@@ -52,8 +52,8 @@ if len(english) != len(german):
 
 # STEP 4 - Create DataFrame
 df = pd.DataFrame({
-    "source": english,
-    "target": german
+    "source": german,
+    "target": english,
 })
 
 print(f"Original sentence pairs: {len(df)}")

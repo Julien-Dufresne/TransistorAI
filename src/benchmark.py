@@ -28,9 +28,10 @@ from evaluation.metrics import calculate_metrics
 
 ROOT = Path(__file__).resolve().parents[1]
 
-DATA_DIR = ROOT / "data" / "processed"
+
 RESULTS_DIR = ROOT / "results"
 CONFIG_PATH = ROOT / "configs" / "metric_config.json"
+PROJECT_CONFIG_PATH = ROOT / "configs" / "project_config.json"
 
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -41,6 +42,9 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 with CONFIG_PATH.open(encoding="utf-8") as file:
     CONFIG = json.load(file)
+with PROJECT_CONFIG_PATH.open(encoding="utf-8") as file:
+    PROJECT_CONFIG = json.load(file)
+
 
 MODELS = CONFIG["models"]
 DECODING = CONFIG["decoding"]
@@ -72,35 +76,33 @@ print(f"Benchmark device: {DEVICE}")
 # --------------------------------------------------
 
 def discover_datasets():
-    """
-    Discover held-out CSV test datasets.
+    """Load only the explicitly configured held-out tests."""
 
-    Expected layout:
-        data/processed/<domain>/<direction>/*test.csv
+    direction = PROJECT_CONFIG["language_pair"]
 
-    For example:
-        data/processed/general/de-en/general_test.csv
-    """
+    if direction not in MODELS:
+        raise ValueError(
+            f"No baseline model configured for {direction}"
+        )
+
+    if MODELS[direction] != PROJECT_CONFIG["model_id"]:
+        raise ValueError(
+            "Baseline model differs from project_config.json"
+        )
 
     datasets = []
 
-    for path in sorted(DATA_DIR.rglob("*test.csv")):
+    for domain in ("technical", "general"):
+        key = f"{domain}_test"
+        relative_path = PROJECT_CONFIG["datasets"][key]
+        path = ROOT / relative_path
 
-        relative = path.relative_to(DATA_DIR)
-        parts = relative.parts
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"Configured {domain} test file not found: {path}"
+            )
 
-        # Require a domain and language direction.
-        if len(parts) < 3:
-            continue
-
-        domain, direction = parts[0], parts[1]
-
-        # Only benchmark known model directions.
-        if direction not in MODELS:
-            continue
-
-        if domain not in ("general", "technical"):
-            continue
+        print(f"Selected {direction} / {domain}: {path}")
 
         datasets.append({
             "path": path,
@@ -152,9 +154,7 @@ def run_benchmark():
     datasets = discover_datasets()
 
     if not datasets:
-        raise FileNotFoundError(
-            "No test datasets found under data/processed."
-        )
+        raise ValueError("No test datasets configured.")
 
     all_predictions = []
     all_scores = []

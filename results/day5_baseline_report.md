@@ -12,12 +12,11 @@ translation quality across technical and general domains.
 
 | language_pair   | domain    |   bleu |   chrf |   sentences_per_second |
 |:----------------|:----------|-------:|-------:|-----------------------:|
-| de-en           | general   |   3.63 |  24.18 |                   6.97 |
-| de-en           | technical |   9.16 |  21.63 |                   7.57 |
+| de-en           | technical |  35.11 |  57.9  |                   8.64 |
+| de-en           | general   |  40.41 |  65.49 |                   7.5  |
 
 ## Evaluation methodology
 
-- Models: Helsinki-NLP/opus-mt-en-de and Helsinki-NLP/opus-mt-de-en
 - Corpus-level SacreBLEU BLEU and chrF
 - Held-out technical and general-domain test sets
 - Fixed decoding configuration
@@ -30,22 +29,6 @@ translation quality across technical and general domains.
 [
   {
     "language_pair": "de-en",
-    "domain": "general",
-    "model_id": "Helsinki-NLP/opus-mt-de-en",
-    "decoding": {
-      "num_beams": 4,
-      "do_sample": false,
-      "max_new_tokens": 128
-    },
-    "device": "mps",
-    "batch_size": 8,
-    "dataset": "data/processed/general/de-en/general_test.csv",
-    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
-    "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
-    "sacrebleu_version": "2.6.0"
-  },
-  {
-    "language_pair": "de-en",
     "domain": "technical",
     "model_id": "Helsinki-NLP/opus-mt-de-en",
     "decoding": {
@@ -56,6 +39,22 @@ translation quality across technical and general domains.
     "device": "mps",
     "batch_size": 8,
     "dataset": "data/processed/technical/de-en/technical_test.csv",
+    "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+    "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+    "sacrebleu_version": "2.6.0"
+  },
+  {
+    "language_pair": "de-en",
+    "domain": "general",
+    "model_id": "Helsinki-NLP/opus-mt-de-en",
+    "decoding": {
+      "num_beams": 4,
+      "do_sample": false,
+      "max_new_tokens": 128
+    },
+    "device": "mps",
+    "batch_size": 8,
+    "dataset": "data/processed/general/de-en/general_test.csv",
     "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
     "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
     "sacrebleu_version": "2.6.0"
@@ -93,6 +92,3 @@ BLEU and chrF do not fully measure:
 2. Analyze terminology and semantic errors.
 3. Prepare domain-specific fine-tuning experiments.
 4. Compare fine-tuned models against this baseline.
-
-
-python -m pip install accelerate

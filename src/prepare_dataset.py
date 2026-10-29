@@ -35,10 +35,10 @@ print("German lines:", len(german))
 if len(english) != len(german):
     raise ValueError("The parallel files have different line counts!")
 
-# Create the dataframe with English sentences as source and German sentences as target
+# Create the dataframe with German sentences as source and English sentences as target
 df = pd.DataFrame({
-    "source": english,
-    "target": german
+    "source": german,
+    "target": english
 })
 
 print(df.head())
@@ -97,7 +97,7 @@ print("Removed duplicate pairs:", before - len(df))
 
 # ============================================================
 # 5. Filtering out suspicious sentence pairs - as some translation pairs may contain very long text or significantly different lengths
-# We will use a 2-200 word filter initially
+# We will use a 2-100 word filter initially
 # ============================================================
 
 df["source_words"] = df["source"].str.split().str.len()
@@ -158,8 +158,11 @@ def detect_quality_issues(row):
     r"(?<=[a-zäöüß])Name$",
 ]
 
+    # Inspect both German source and English target.
+# Metadata artifacts may occur in either language.
     if any(
-        re.search(pattern, target, re.IGNORECASE)
+        re.search(pattern, text, re.IGNORECASE)
+        for text in (source, target)
         for pattern in metadata_patterns
     ):
         issues.append("metadata_contamination")
@@ -197,60 +200,95 @@ def detect_quality_issues(row):
 
 
 
+#
 # ============================================================
 # 6.B. QUALITY DETECTION AND FILTERING
 # ============================================================
 
-# STEP 1 - Identify quality issues
+# STEP 1 — Detect potential quality issues in each translation pair.
+# The function returns semicolon-separated flags, or an empty
+# string if no issues were detected.
 df["quality_flags"] = df.apply(
     detect_quality_issues,
     axis=1
 )
 
-# STEP 2 - Display quality report
+# STEP 2 — Display the distribution of detected quality issues.
 print("\nQuality flags before filtering:")
 print(df["quality_flags"].value_counts())
 
 original_count = len(df)
 
-# STEP 3 - Save flagged pairs BEFORE removing them
+# STEP 3 — Save all flagged translation pairs for manual review.
+# This includes potentially valid identical translations.
 flagged_df = df[
     df["quality_flags"] != ""
 ].copy()
 
 flagged_df.to_csv(
+    OUTPUT_DIR / "flagged_quality_review.csv",
+    index=False,
+    encoding="utf-8"
+)
+
+print(f"\nSaved {len(flagged_df):,} flagged pairs for review.")
+
+# STEP 4 — Define which quality issues should trigger exclusion.
+# Identical source-target pairs are deliberately NOT included,
+# because technical terms, commands, and product names can
+# legitimately be identical in German and English.
+removal_flags = {
+    "metadata_contamination",
+    "placeholder_mismatch",
+    "extreme_length_ratio",
+}
+
+# STEP 5 — Check whether a row contains an exclusion flag.
+def should_remove(flags):
+    # Convert the semicolon-separated string into a set.
+    detected_flags = set(flags.split(";")) if flags else set()
+
+    # Return True if any detected flag requires exclusion.
+    return bool(detected_flags & removal_flags)
+
+
+# STEP 6 — Identify translation pairs to exclude.
+removal_mask = df["quality_flags"].map(should_remove)
+
+# Save excluded pairs separately for reproducibility.
+removed_df = df.loc[removal_mask].copy()
+
+removed_df.to_csv(
     OUTPUT_DIR / "removed_quality_flags.csv",
     index=False,
     encoding="utf-8"
 )
 
-print(f"\nSaved {len(flagged_df):,} flagged pairs.")
+# STEP 7 — Keep translation pairs that do not meet
+# the configured exclusion criteria.
+df = df.loc[~removal_mask].copy()
 
-# STEP 4 - Remove all flagged pairs
-df = df[
-    df["quality_flags"] == ""
-].copy()
-
-# STEP 5 - Calculate how many were removed
+# STEP 8 — Calculate the filtering results.
 removed_count = original_count - len(df)
 
-# STEP 6 - Remove temporary quality column
+# STEP 9 — Remove the temporary quality column.
 df = df.drop(columns=["quality_flags"])
 
-# STEP 7 - Reset index
+# STEP 10 — Reset the DataFrame index.
 df = df.reset_index(drop=True)
 
-# STEP 8 - Verify the remaining pairs
-assert df.apply(
-    detect_quality_issues,
+# STEP 11 — Verify that no exclusion flags remain.
+assert not df.apply(
+    lambda row: should_remove(detect_quality_issues(row)),
     axis=1
-).eq("").all()
+).any()
 
 print("\nQuality filtering results:")
 print(f"Original pairs: {original_count:,}")
 print(f"Removed pairs: {removed_count:,}")
 print(f"Remaining pairs: {len(df):,}")
 print("Quality filtering completed successfully!")
+
 
 # 6. C. Manually inspect the dataset by inspecting 30 random examples
 
@@ -273,8 +311,12 @@ sample[["source", "target"]].to_csv(
 
 from sklearn.model_selection import train_test_split
 
-# Group by source text so the same English sentence
-# cannot appear in different splits.
+# Group by German source text.
+# This prevents the same German source sentence
+# from appearing in multiple dataset splits.
+#
+# All corresponding English translations of that
+# German sentence remain in the same split.
 unique_sources = df["source"].drop_duplicates()
 
 train_sources, temp_sources = train_test_split(

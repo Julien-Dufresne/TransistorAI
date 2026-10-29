@@ -1,41 +1,27 @@
 # Day 7 — Fine-Tuned Model Evaluation
 
-## Objective
+**Experiment:** day7_finetuned_de_en
+**Model:** results/day8-de-en-v2/technical-finetuned/final_model
+**Language pair:** de-en
+**Device:** mps
 
-Evaluate fine-tuning gains on technical translation
-and measure general-domain performance changes.
+## Evaluation configuration
 
-## Experiment Configuration
+- Batch size: 8
+- Decoding: `{"num_beams": 4, "do_sample": false, "max_new_tokens": 128}`
+- Metrics: SacreBLEU BLEU and chrF (Day 5 implementation)
 
-- Language pair: de-en
-- Model: results/final_model
-- Seed: 42
+## Evaluation results
+
+| Domain | Sentences | BLEU | chrF | Sentences/sec |
+|---|---:|---:|---:|---:|
+| technical | 12623 | 40.5126 | 61.8439 | 9.060 |
+| general | 1997 | 30.6843 | 57.3025 | 7.329 |
+
+## Reproducibility
+
 - SacreBLEU version: 2.6.0
-- Decoding: `{"num_beams": 4, "do_sample": false, "max_new_tokens": 128, "batch_size": 8}`
-- Generated (UTC): 2026-10-27T11:04:26.255133+00:00
+- BLEU signature: `nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0`
+- chrF signature: `nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0`
 
-## Model Comparison
-
-| Domain | BLEU baseline | BLEU fine-tuned | BLEU delta | chrF baseline | chrF fine-tuned | chrF delta |
-|---|---:|---:|---:|---:|---:|---:|
-| technical | 9.1623 | 26.9278 | +17.7655 | 21.6315 | 54.0667 | +32.4352 |
-| general | 3.6273 | 8.7527 | +5.1254 | 24.1778 | 37.3184 | +13.1406 |
-
-## Interpretation
-
-- **Technical**: BLEU improved (+17.7655); chrF improved (+32.4352).
-- **General**: BLEU improved (+5.1254); chrF improved (+13.1406).
-
-## Qualitative Error Analysis
-
-Add findings from day7_manual_inspection.csv.
-
-## Limitations
-
-- Automatic metrics do not fully measure adequacy.
-- Small score changes may not be statistically significant.
-- Dataset and decoding settings must match Day 5.
-
-## Conclusion
-
-As both results improve (both technical and general), fine-tuning may provide broader improvements, not just technical specialization. 
+The evaluation reuses the Day 5 metric implementation, tokenization behavior, decoding parameters and batch size.

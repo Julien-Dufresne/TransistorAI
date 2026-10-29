@@ -1,34 +1,34 @@
 {
     "train": {
-        "sentence_pairs": 97128,
-        "avg_source_words": 11.52,
-        "avg_target_words": 10.87,
+        "sentence_pairs": 101401,
+        "avg_source_words": 10.55,
+        "avg_target_words": 11.02,
         "max_source_words": 100,
         "max_target_words": 100,
         "duplicate_pairs": 0
     },
     "validation": {
-        "sentence_pairs": 12153,
-        "avg_source_words": 11.44,
-        "avg_target_words": 10.82,
-        "max_source_words": 100,
-        "max_target_words": 99,
+        "sentence_pairs": 12662,
+        "avg_source_words": 10.7,
+        "avg_target_words": 11.18,
+        "max_source_words": 94,
+        "max_target_words": 100,
         "duplicate_pairs": 0
     },
     "technical_test": {
-        "sentence_pairs": 12123,
-        "avg_source_words": 11.22,
-        "avg_target_words": 10.61,
-        "max_source_words": 100,
-        "max_target_words": 97,
+        "sentence_pairs": 12623,
+        "avg_source_words": 10.86,
+        "avg_target_words": 11.4,
+        "max_source_words": 99,
+        "max_target_words": 100,
         "duplicate_pairs": 0
     },
     "general_test": {
         "sentence_pairs": 1997,
-        "avg_source_words": 21.05,
-        "avg_target_words": 21.08,
-        "max_source_words": 63,
-        "max_target_words": 73,
+        "avg_source_words": 21.08,
+        "avg_target_words": 21.05,
+        "max_source_words": 73,
+        "max_target_words": 63,
         "duplicate_pairs": 0
     }
 }
