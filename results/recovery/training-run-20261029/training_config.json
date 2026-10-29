@@ -1,0 +1,22 @@
+{
+  "model_id": "Helsinki-NLP/opus-mt-de-en",
+  "language_pair": "de-en",
+  "train_path": "data/processed/technical/de-en/train.csv",
+  "validation_path": "data/processed/technical/de-en/validation.csv",
+  "source_column": "source",
+  "target_column": "target",
+  "seed": 42,
+  "learning_rate": 2e-05,
+  "optimizer": "adamw_torch",
+  "per_device_train_batch_size": 4,
+  "per_device_eval_batch_size": 4,
+  "gradient_accumulation_steps": 2,
+  "num_train_epochs": 3,
+  "max_source_length": 128,
+  "max_target_length": 128,
+  "save_strategy": "epoch",
+  "eval_strategy": "epoch",
+  "save_total_limit": 2,
+  "output_dir": "models/checkpoints/de-en",
+  "run_dir": "results/day8-de-en-v2/technical-finetuned"
+}
