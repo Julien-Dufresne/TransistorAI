@@ -1,4 +1,4 @@
-# TransistorAI — clean Days 1–7 rebuild
+# TransistorAI 
 
 German-to-English technical-domain machine translation with MarianMT, a Streamlit demo, reproducible dataset preparation, supervised fine-tuning, and baseline comparison.
 
