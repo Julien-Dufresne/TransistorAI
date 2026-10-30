@@ -1,0 +1,17 @@
+domain,model,severity,count
+technical,E1,None,12
+technical,E1,Minor,7
+technical,E1,Moderate,5
+technical,E1,Major,1
+technical,E2,None,12
+technical,E2,Minor,7
+technical,E2,Moderate,4
+technical,E2,Major,2
+general,E1,None,3
+general,E1,Minor,5
+general,E1,Moderate,8
+general,E1,Major,9
+general,E2,None,8
+general,E2,Minor,3
+general,E2,Moderate,6
+general,E2,Major,8

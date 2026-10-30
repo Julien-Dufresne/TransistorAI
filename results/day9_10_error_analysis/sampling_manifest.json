@@ -1,0 +1,20 @@
+{
+  "seed": 42,
+  "sample_per_domain": 25,
+  "disagreement_target_per_domain": 20,
+  "sampling_method": "Disagreement-enriched sampling with random controls",
+  "domains": {
+    "technical": {
+      "population": 12623,
+      "disagreements_in_population": 4735,
+      "selected_disagreements": 20,
+      "selected_random_controls": 5
+    },
+    "general": {
+      "population": 1997,
+      "disagreements_in_population": 1873,
+      "selected_disagreements": 20,
+      "selected_random_controls": 5
+    }
+  }
+}

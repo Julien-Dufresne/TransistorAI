@@ -1,0 +1,13 @@
+domain,model,meaning_preserved,count
+technical,E1,Yes,18
+technical,E1,Partially,6
+technical,E1,No,1
+technical,E2,Yes,18
+technical,E2,Partially,6
+technical,E2,No,1
+general,E1,Yes,8
+general,E1,Partially,12
+general,E1,No,5
+general,E2,Yes,11
+general,E2,Partially,11
+general,E2,No,3
