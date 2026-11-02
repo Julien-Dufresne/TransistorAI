@@ -185,3 +185,39 @@ For your German–English MarianMT model, you use it to tokenize the English ref
 - Max target length (128):  Maximum reference translation tokens during training
 - Checkpoint (Every epoch): Saves model state for recovery or comparison
 
+day 8:
+Realised that the general domain and one technical database did not have the good source/target: German/English instead of English/German. 
+
+day 9:
+**Avoiding Data leakage and insuring consistency**:
+In order to avoid data leakage between the different models we are training, and to ensure consistency in the tests, we did verified that E1 and E2 both completed 3 training epochs, used the same pretrained model (MarianMT DE→EN) and have separate training datasets and checkpoints directory:
+
+**Training comparison**
+Parameter	            E1 Technical	        E2 Mixed
+Base model	            MarianMT DE→EN	        MarianMT DE→EN
+Training dataset	    Technical	            Mixed
+Learning rate	        2e-5	                2e-5
+Batch size	            4	                    4
+Gradient accumulation	2	                    2
+Effective batch size	8	                    8
+Epochs	                3	                    3
+Random seed	            42	                    42
+Training loss	        2.5122	                2.2209
+Training duration	    2h 44m	                2h 49m
+
+**Epoch**
+Term in Machine Learning that represents one complete pass of the entire training dataset through the algorithm. 
+At the start of a new epoch, the model starts with the internal weights and biases learned at the end of the previously completed epoch. 
+
+**Batch size** It is the number of training samples processed together in one group
+
+**Iteration** is a single update to the model's parameters. One iteration occurs every time a single batch is processed. 
+
+**Relationship between Iteration, Batch Size and Epoch**: Iterations per Epoch = Total Training Samples ÷ Batch Size
+
+Day 11:
+COMET (Crosslingual Optimized Metric for Evaluation of Translation): is an open-source neural framework used to automatically measure the quality of machine translation outputs. It is considered the modern standard for Machine Translation evaluation. Modern COMET models (and its error-detection extension, XCOMET) are scaled between 0 and 1, where a score close to 1 represents a near-perfect translation.
+
+- **How it works**: Unlike older metrics that only look at exact string matching between a machine-generated translation and a reference translation, COMET uses multilingual text embeddings (vector representations). It evaluates three inputs simultaneously: the Source input text, the Machine Translation output, and the Human Reference translation
+
+- **Why it's Better**: Because it leverages a shared cross-lingual embedding space, COMET detects semantic similarity even if the machine translation uses completely different words than the reference text. It has a much higher correlation with human quality judgments than traditional overlap-based metrics
