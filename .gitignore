@@ -40,3 +40,18 @@ mlruns/
 /results/*predictions.csv
 /results/*manual_inspection.csv
 /evaluation/*.csv
+
+# Local E2 evaluation backups
+/results/day8-de-en-v2/e2_evaluation_backup_20261030_112115/
+/results/day8-de-en-v2/e2_evaluation_verified_backup/
+
+# Day 11 — Generated COMET evaluation artifacts
+# Keep detailed sentence-level results locally.
+results/day11_evaluation/*_segments.csv
+results/day11_evaluation/e0_comet/*_segments.csv
+
+# Baseline generation outputs can be regenerated.
+results/day11_evaluation/e0_generation/
+
+# Execution logs are local artifacts.
+results/day11_evaluation/logs/
