@@ -172,22 +172,38 @@ def main():
 
     print(f"Evaluation device: {device}")
 
-    # STEP 6 — Load the fine-tuned model and tokenizer.
-    model_path = ROOT / config["model_path"]
+    
+    # STEP 6 — Load either a local fine-tuned model or a pretrained model.
+    # E1/E2 use local checkpoint directories.
+    # E0 uses a Hugging Face model identifier.
 
-    if not model_path.is_dir():
+    configured_model = config["model_path"]
+
+    # Check whether the model is stored locally in this project.
+    local_model_path = ROOT / configured_model
+
+    if local_model_path.is_dir():
+        # Load the existing local checkpoint for E1 or E2.
+        model_source = str(local_model_path)
+    elif configured_model == "Helsinki-NLP/opus-mt-de-en":
+        # Load the original pretrained checkpoint for E0.
+        model_source = configured_model
+    else:
+        # Reject unexpected paths rather than silently loading
+        # a different remote model.
         raise FileNotFoundError(
-            f"Fine-tuned model not found: {model_path}"
+            f"Model not found or unsupported: {configured_model}"
         )
 
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-
+    # Load the tokenizer and translation model.
+    tokenizer = AutoTokenizer.from_pretrained(model_source)
     model = AutoModelForSeq2SeqLM.from_pretrained(
-        model_path
+        model_source
     ).to(device)
 
-    # Disable dropout and other training-specific behavior.
+    # Disable training-specific behavior during evaluation.
     model.eval()
+
 
     # STEP 7 — Prepare result containers.
     all_predictions = []

@@ -1,0 +1,34 @@
+{
+  "experiment_name": "day11_comet_evaluation",
+  "language_pair": "de-en",
+  "seed": 42,
+  "comet": {
+    "model_name": "Unbabel/wmt22-comet-da",
+    "model_revision": null,
+    "batch_size": 8,
+    "gpus": 0
+  },
+  "evaluation": {
+    "domains": [
+      "technical",
+      "general"
+    ],
+    "systems": [
+      "E0"
+    ],
+    "smoke_test": false,
+    "smoke_test_samples": 30,
+    "require_identical_examples": true
+  },
+  "paths": {
+    "e1_predictions": "results/day8-de-en-v2/e1_evaluation/predictions.csv",
+    "e2_predictions": "results/day8-de-en-v2/e2_evaluation/predictions.csv",
+    "output_dir": "results/day11_evaluation/e0_comet",
+    "e0_predictions": "results/day11_evaluation/e0_generation/predictions.csv"
+  },
+  "metrics": {
+    "bleu": true,
+    "chrf": true,
+    "comet": true
+  }
+}

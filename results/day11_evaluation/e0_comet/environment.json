@@ -1,0 +1,16 @@
+{
+  "experiment": "day11_comet_evaluation",
+  "language_pair": "de-en",
+  "comet_model": "Unbabel/wmt22-comet-da",
+  "comet_revision": null,
+  "checkpoint_path": "/Users/juliendufresne/.cache/huggingface/hub/models--Unbabel--wmt22-comet-da/snapshots/2760a223ac957f30acfb18c8aa649b01cf1d75f2/checkpoints/model.ckpt",
+  "python": "3.11.18 (main, Oct 26 2026, 18:15:19) [Clang 20.1.8 ]",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "torch": "2.15.0",
+  "sacrebleu": "2.6.0",
+  "unbabel_comet": "2.2.7",
+  "smoke_test": false,
+  "systems_evaluated": [
+    "E0"
+  ]
+}
