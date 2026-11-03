@@ -216,8 +216,10 @@ At the start of a new epoch, the model starts with the internal weights and bias
 **Relationship between Iteration, Batch Size and Epoch**: Iterations per Epoch = Total Training Samples ÷ Batch Size
 
 Day 11:
-COMET (Crosslingual Optimized Metric for Evaluation of Translation): is an open-source neural framework used to automatically measure the quality of machine translation outputs. It is considered the modern standard for Machine Translation evaluation. Modern COMET models (and its error-detection extension, XCOMET) are scaled between 0 and 1, where a score close to 1 represents a near-perfect translation.
+**COMET** (Crosslingual Optimized Metric for Evaluation of Translation): is an open-source neural framework used to automatically measure the quality of machine translation outputs. It is considered the modern standard for Machine Translation evaluation. Modern COMET models (and its error-detection extension, XCOMET) are scaled between 0 and 1, where a score close to 1 represents a near-perfect translation.
 
 - **How it works**: Unlike older metrics that only look at exact string matching between a machine-generated translation and a reference translation, COMET uses multilingual text embeddings (vector representations). It evaluates three inputs simultaneously: the Source input text, the Machine Translation output, and the Human Reference translation
 
 - **Why it's Better**: Because it leverages a shared cross-lingual embedding space, COMET detects semantic similarity even if the machine translation uses completely different words than the reference text. It has a much higher correlation with human quality judgments than traditional overlap-based metrics
+
+Unbabel/wmt22-comet-da: is a reference-based COMET model.
