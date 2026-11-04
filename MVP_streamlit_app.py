@@ -18,6 +18,12 @@ from src.translation_logger import log_translation, append_csv
 # Used to timestamp learning attempts.
 from datetime import datetime, timezone
 
+import pandas as pd
+
+from evaluation.streamlit_metrics import (
+    calculate_translation_metrics,
+)
+from evaluation.streamlit_comet import calculate_comet_scores
 
 # STEP 2 — Define model and decoding configuration
 # Keep the same configuration as Day 2 to make results
@@ -61,12 +67,33 @@ else:
 # @st.cache_resource keeps the model and tokenizer in memory.
 # This reduces overhead for subsequent translations.
 
-@st.cache_resource
+# @st.cache_resource
 def load_translation_model(model_id):
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
+
+    print("MODEL DEBUG 1: Loading tokenizer", flush=True)
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_id,
+        local_files_only=True,
+    )
+
+    print("MODEL DEBUG 2: Tokenizer loaded", flush=True)
+
+    model = AutoModelForSeq2SeqLM.from_pretrained(
+        model_id,
+        local_files_only=True,
+    )
+
+    print("MODEL DEBUG 3: Model weights loaded", flush=True)
+
     model = model.to(DEVICE)
+
+    print(f"MODEL DEBUG 4: Model moved to {DEVICE}", flush=True)
+
     model.eval()
+
+    print("MODEL DEBUG 5: Model ready", flush=True)
+
     return tokenizer, model
 
 
@@ -157,6 +184,7 @@ st.write(
 )
 
 
+
 # ============================================================
 # TAB 1 — TRANSLATE
 # ============================================================
@@ -165,187 +193,250 @@ with translate_tab:
 
     st.subheader("German → English Translation")
 
-    # STEP 7 — Load the model selected by LANGUAGE_PAIR.
-    # The cached model is reused across Streamlit reruns.
-    tokenizer, model = load_translation_model(MODEL_ID)
-
-    # STEP 8 — Create the text input.
-    # This variable contains the German sentence entered
-    # by the user.
     source_text = st.text_area(
         "Enter German text:",
-        value="Enter your text in German here",
+        placeholder="Enter your German text here...",
         height=120,
     )
 
-    # STEP 9 — Translate when the button is clicked.
     if st.button("Translate", type="primary"):
 
-        # Prevent empty translations.
         if not source_text.strip():
-            st.warning("Please enter some text.")
+            st.warning("Please enter some German text.")
 
         else:
-            with st.spinner("Translating..."):
+            with st.spinner("Generating translation..."):
 
-                # STEP 10 — Generate the English translation.
-                # The function returns the translated text
-                # and the inference latency in milliseconds.
+                print("DEBUG 1: Loading model", flush=True)
+
+                tokenizer, model = load_translation_model(
+                    MODELS["de-en"]
+                )
+
+                print("DEBUG 2: Model loaded", flush=True)
+
                 translation, latency_ms = translate(
                     source_text,
                     tokenizer,
                     model,
                 )
 
-                # STEP 11 — Save the result to CSV.
-                # This appends one row to translation_log.csv.
-                log_translation(
-                    source=source_text,
-                    translation=translation,
-                    model_id=MODEL_ID,
-                    language_pair=LANGUAGE_PAIR,
-                    latency_ms=latency_ms,
-                )
+                print("DEBUG 3: Translation completed", flush=True)
 
-            # STEP 12 — Display translation results.
+            log_translation(
+                source=source_text,
+                translation=translation,
+                model_id=MODEL_ID,
+                language_pair=LANGUAGE_PAIR,
+                latency_ms=latency_ms,
+            )
+
             st.success("Translation completed!")
 
-            st.markdown("### Source (German)")
+            st.markdown("### German source")
             st.write(source_text)
 
-            st.markdown("### Translation (English)")
+            st.markdown("### English translation")
             st.write(translation)
 
-            st.markdown("### Model Information")
+            st.markdown("### Model information")
             st.write(f"**Model:** {MODEL_ID}")
             st.write(f"**Device:** {DEVICE}")
             st.write(f"**Latency:** {latency_ms:.2f} ms")
 
-            # STEP 13 — Display decoding settings.
             with st.expander("Decoding configuration"):
                 st.json(DECODING_CONFIG)
+
 
 # ============================================================
 # TAB 2 — TEST YOURSELF SECTION
 # ============================================================
 
+
 with practice_tab:
 
-    st.subheader("Test Yourself — English → German")
+    st.subheader("Test Yourself — German → English")
 
-    st.write(
-        "Translate the English sentence into German, "
-        "then compare your answer with the model."
+    @st.cache_data
+    def load_exercises():
+        df = pd.read_csv(
+            "data/exercises/translation_exercises.csv"
+        )
+
+        required = {
+            "id", "domain", "source", "reference", "focus"
+        }
+        if not required.issubset(df.columns):
+            raise ValueError("Missing exercise CSV columns.")
+
+        return df
+
+    exercises = load_exercises()
+
+    domain = st.radio(
+        "Choose exercise category",
+        ["general", "technical"],
+        horizontal=True,
+        format_func=lambda x: x.title(),
     )
 
-    # STEP 15 — Track which exercise the user is doing.
-    # Session state preserves this value when Streamlit reruns.
-    if "exercise_index" not in st.session_state:
-        st.session_state.exercise_index = 0
+    filtered = exercises[
+        exercises["domain"] == domain
+    ].reset_index(drop=True)
 
-    index = st.session_state.exercise_index
-    exercise = EXERCISES[index]
+    exercise_index = st.selectbox(
+        "Select an exercise",
+        range(len(filtered)),
+        format_func=lambda i: (
+            f"Exercise {i + 1} — {filtered.iloc[i]['focus']}"
+        ),
+    )
 
-    # Display the selected English sentence.
-    st.write(f"Exercise {index + 1} of {len(EXERCISES)}")
-    st.info(exercise["english"])
+    exercise = filtered.iloc[exercise_index]
 
-    # Show the grammar or vocabulary focus.
+    st.info(exercise["source"])
     st.caption(f"Focus: {exercise['focus']}")
 
-    # STEP 16 — Capture the user's German translation.
-    # The unique key creates a separate input for each exercise.
     user_answer = st.text_area(
-        "Your German translation:",
-        key=f"answer_{index}",
+        "Your English translation:",
+        key=f"answer_{domain}_{exercise['id']}",
         height=100,
     )
 
-    # STEP 17 — Check the user's translation.
-    if st.button("Check my translation"):
+    enable_comet = st.checkbox(
+    "Calculate COMET",
+    value=True,
+    help="Evaluate translation quality using a neural model.",
+)
+    
+    
+    if st.button("Evaluate translation", type="primary"):
 
         if not user_answer.strip():
-            st.warning("Please enter a German translation.")
+            st.warning("Please enter a translation.")
 
         else:
-            with st.spinner("Evaluating your translation..."):
+            # Retrieve the independent English reference.
+            reference = str(exercise["reference"])
 
-                # Load the English → German model.
-                # This is independent of LANGUAGE_PAIR.
-                test_tokenizer, test_model = load_translation_model(
-                    MODELS["en-de"]
+            with st.spinner("Generating model translation..."):
+
+                print("PRACTICE DEBUG 1: Loading model", flush=True)
+
+                tokenizer, model = load_translation_model(
+                    MODELS["de-en"]
                 )
 
-                # Generate the model's German translation.
+                print("PRACTICE DEBUG 2: Model loaded", flush=True)
+
                 model_answer, latency_ms = translate(
-                    exercise["english"],
-                    test_tokenizer,
-                    test_model,
+                    exercise["source"],
+                    tokenizer,
+                    model,
                 )
 
-                # Compare the user's answer with the model output.
-                comparison = compare_translations(
-                    user_answer,
-                    model_answer,
-                )
+                print("PRACTICE DEBUG 3: Translation completed", flush=True)
+                print(f"Model output: {model_answer}", flush=True)
 
-            # STEP 18 — Display comparison results.
-            st.markdown("### Your translation")
-            st.write(user_answer)
-
-            st.markdown("### Model translation")
-            st.write(model_answer)
-
-            st.metric(
-                "Word-sequence similarity",
-                f"{comparison['similarity']}%",
+            # Evaluate both translations against the reference.
+            user_scores = calculate_translation_metrics(
+                user_answer,
+                reference,
             )
 
-            # Explain what the comparison means.
-            st.info(
-                "This score measures similarity to the model's "
-                "wording, not translation correctness. "
-                "Different translations can both be valid."
+            model_scores = calculate_translation_metrics(
+                model_answer,
+                reference,
             )
 
-            st.markdown("### Differences")
+            # Optional neural evaluation.
+            comet_scores = None
 
-            st.write("Words only in the model translation:")
-            st.write(comparison["missing"])
+            if enable_comet:
+                try:
+                    with st.spinner("Calculating COMET scores..."):
+                        comet_scores = calculate_comet_scores(
+                            source=exercise["source"],
+                            user_translation=user_answer,
+                            model_translation=model_answer,
+                            reference=reference,
+                        )
+                except Exception as error:
+                    st.warning(
+                        f"COMET evaluation unavailable: {error}"
+                    )
 
-            st.write("Words only in your translation:")
-            st.write(comparison["extra"])
+            # Display translations.
+            st.markdown("### Translation comparison")
+            st.write("**German source:**", exercise["source"])
+            st.write("**English reference:**", reference)
+            st.write("**Your translation:**", user_answer)
+            st.write("**Model translation:**", model_answer)
 
-            # STEP 19 — Save the learning attempt.
-            # Each attempt creates a new row in learning_history.csv.
-            append_csv("learning_history.csv", {
-                "timestamp_utc": datetime.now(
-                    timezone.utc
-                ).isoformat(),
-                "exercise_id": exercise["id"],
-                "english_source": exercise["english"],
-                "user_translation": user_answer,
-                "model_translation": model_answer,
-                "focus": exercise["focus"],
-                "similarity_percent": comparison["similarity"],
+            # Build the BLEU and chrF results.
+            results = pd.DataFrame({
+                "Metric": ["BLEU", "chrF"],
+                "Your translation": [
+                    user_scores["bleu"],
+                    user_scores["chrf"],
+                ],
+                "Model translation": [
+                    model_scores["bleu"],
+                    model_scores["chrf"],
+                ],
             })
 
-    # STEP 20 — Move to the next exercise.
-    if st.button("Next exercise"):
+            # Include COMET if evaluation succeeded.
+            if comet_scores is not None:
+                results = pd.concat([
+                    results,
+                    pd.DataFrame([{
+                        "Metric": "COMET",
+                        "Your translation": round(
+                            comet_scores["user_comet"], 4
+                        ),
+                        "Model translation": round(
+                            comet_scores["model_comet"], 4
+                        ),
+                    }])
+                ], ignore_index=True)
 
-        # Increment the exercise index.
-        # Modulo (%) returns to exercise 1 after exercise 5.
-        st.session_state.exercise_index = (
-            index + 1
-        ) % len(EXERCISES)
+            st.markdown("### Evaluation metrics")
+            st.dataframe(results, hide_index=True)
 
-        # Refresh the interface with the next exercise.
-        st.rerun()
+            # BLEU and chrF: 0–100 scale.
+            st.markdown("#### BLEU and chrF")
+            st.bar_chart(
+                results[
+                    results["Metric"].isin(["BLEU", "chrF"])
+                ].set_index("Metric")
+            )
 
-# STEP 21 — Application disclaimer.
-# This appears below both tabs.
+            # COMET: separate scoring scale.
+            if comet_scores is not None:
+                st.markdown("#### COMET")
+                st.bar_chart(
+                    pd.DataFrame({
+                        "Translation": [
+                            "Your translation",
+                            "Model translation",
+                        ],
+                        "COMET": [
+                            comet_scores["user_comet"],
+                            comet_scores["model_comet"],
+                        ],
+                    }).set_index("Translation")
+                )
 
-st.caption(
-    "Research prototype. Translation quality is not "
-    "guaranteed. Similarity is not a measure of correctness."
-)
+            st.caption(
+                "BLEU and chrF measure similarity to the "
+                "reference. COMET estimates translation "
+                "quality using a neural evaluation model. "
+                "Higher scores generally indicate better "
+                "translations, but none guarantees correctness."
+            )
+
+            st.write(
+                f"Model inference latency: {latency_ms:.2f} ms"
+            )
+

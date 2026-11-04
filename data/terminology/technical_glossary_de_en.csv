@@ -1,0 +1,13 @@
+term_id,source_de,target_en,alternatives_en,category,match_type
+T001,Datei,file,,software,word
+T002,Verzeichnis,directory,folder,software,word
+T003,Benutzeroberfläche,user interface,,ui,phrase
+T004,Einstellungen,settings,preferences,ui,word
+T005,Zwischenablage,clipboard,,software,word
+T006,Tastenkombination,keyboard shortcut,key combination,ui,phrase
+T007,Fehlermeldung,error message,,software,phrase
+T008,Berechtigung,permission,,security,word
+T009,Verschlüsselung,encryption,,security,word
+T010,Datenbank,database,,data,word
+T011,Quellcode,source code,,development,phrase
+T012,Netzwerkverbindung,network connection,,network,phrase

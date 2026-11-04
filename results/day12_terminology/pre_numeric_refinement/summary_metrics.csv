@@ -1,0 +1,13 @@
+model,domain,check_type,total_checks,passed_checks,failed_checks,compliance_percent
+E0,general,numbers,438,394,44,89.95
+E0,technical,numbers,858,844,14,98.37
+E0,technical,placeholder,896,895,1,99.89
+E0,technical,terminology,971,953,18,98.15
+E1,general,numbers,438,310,128,70.78
+E1,technical,numbers,858,786,72,91.61
+E1,technical,placeholder,896,895,1,99.89
+E1,technical,terminology,971,908,63,93.51
+E2,general,numbers,438,355,83,81.05
+E2,technical,numbers,858,786,72,91.61
+E2,technical,placeholder,896,895,1,99.89
+E2,technical,terminology,971,921,50,94.85

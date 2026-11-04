@@ -1,0 +1,7 @@
+model,category,total_checks,passed_checks,failed_checks,compliance_percent
+E0,file_paths,85,75,10,88.24
+E0,urls,69,58,11,84.06
+E1,file_paths,85,0,85,0.0
+E1,urls,69,0,69,0.0
+E2,file_paths,85,0,85,0.0
+E2,urls,69,0,69,0.0

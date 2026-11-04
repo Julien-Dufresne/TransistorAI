@@ -1,0 +1,4 @@
+model,reviewed_outputs,outputs_with_errors,error_rate_percent
+E0,26,6,23.08
+E1,26,10,38.46
+E2,26,10,38.46

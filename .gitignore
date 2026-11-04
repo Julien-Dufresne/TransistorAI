@@ -55,3 +55,9 @@ results/day11_evaluation/e0_generation/
 
 # Execution logs are local artifacts.
 results/day11_evaluation/logs/
+
+# Day 13 annotation backups
+/results/day13_error_analysis/*_backup_*.csv
+
+# Local editor and script backups
+*.py.bak
