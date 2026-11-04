@@ -1,0 +1,7 @@
+domain,model,reviewed_outputs,error_outputs,error_rate_percent
+general,E0,19,9,47.368421052631575
+general,E1,19,16,84.21052631578947
+general,E2,19,11,57.89473684210527
+technical,E0,72,20,27.77777777777778
+technical,E1,72,23,31.944444444444443
+technical,E2,72,24,33.33333333333333

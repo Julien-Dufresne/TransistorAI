@@ -1,0 +1,10 @@
+sample_id,data_quality_issue,affected_outputs
+general_1510,source_quality,3
+technical_10864,reference_misalignment,3
+technical_10967,reference_misalignment,3
+technical_11362,source_context,3
+technical_2399,source_contamination,3
+technical_4740,source_contamination,3
+technical_6864,accelerator_marker,3
+technical_7472,source_contamination,3
+technical_7642,source_contamination,3

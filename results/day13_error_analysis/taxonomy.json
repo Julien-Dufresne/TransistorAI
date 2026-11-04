@@ -1,0 +1,57 @@
+{
+  "categories": {
+    "semantic": {
+      "description": "The translation changes the meaning of the source.",
+      "subtypes": [
+        "wrong_meaning",
+        "meaning_reversal",
+        "lost_negation",
+        "added_negation"
+      ]
+    },
+    "omission": {
+      "description": "Relevant source information is missing.",
+      "subtypes": [
+        "missing_word",
+        "missing_phrase",
+        "missing_instruction"
+      ]
+    },
+    "terminology": {
+      "description": "Technical terminology is incorrect or inconsistent.",
+      "subtypes": [
+        "wrong_term",
+        "inconsistent_term"
+      ]
+    },
+    "grammar": {
+      "description": "Grammar or sentence structure is incorrect.",
+      "subtypes": [
+        "agreement",
+        "word_order",
+        "tense",
+        "fluency"
+      ]
+    },
+    "formatting": {
+      "description": "Formatting or protected content is incorrect.",
+      "subtypes": [
+        "placeholder",
+        "number",
+        "unit",
+        "file_path",
+        "url",
+        "punctuation"
+      ]
+    },
+    "no_error": {
+      "description": "No translation error identified.",
+      "subtypes": []
+    }
+  },
+  "severity": {
+    "minor": "Cosmetic or stylistic error; meaning preserved.",
+    "major": "Important meaning or information is affected.",
+    "critical": "Meaning reversal, unsafe instruction, or serious consequence."
+  }
+}
