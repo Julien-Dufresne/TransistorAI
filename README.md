@@ -112,3 +112,6 @@ python -m evaluation.manual_day7_inspection
 ```
 
 Review `results/day7_comparison.csv`, both Day 7 reports, and the locally generated manual inspection sample. Rerunning report commands overwrites generated reports.
+
+
+python -m streamlit run MVP_streamlit_app.py

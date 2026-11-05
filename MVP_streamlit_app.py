@@ -7,6 +7,7 @@
 import time
 import streamlit as st
 import torch
+from human_preference_page import render_human_preference_page
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 # Import the five exercises and comparison function.
@@ -67,15 +68,15 @@ else:
 # @st.cache_resource keeps the model and tokenizer in memory.
 # This reduces overhead for subsequent translations.
 
-# @st.cache_resource
+@st.cache_resource
 def load_translation_model(model_id):
 
     print("MODEL DEBUG 1: Loading tokenizer", flush=True)
 
     tokenizer = AutoTokenizer.from_pretrained(
-        model_id,
-        local_files_only=True,
-    )
+    model_id,
+    local_files_only=True,
+)
 
     print("MODEL DEBUG 2: Tokenizer loaded", flush=True)
 
@@ -170,18 +171,14 @@ st.title("🌍 TransistorAI")
 # The first tab handles normal translation.
 # The second tab contains interactive translation exercises.
 
-translate_tab, practice_tab = st.tabs([
+translate_tab, practice_tab, preference_tab = st.tabs([
     "🌍 Translate",
     "🎓 Test Yourself",
+    "🏆 Human Preference Evaluation",
 ])
 
 
-st.subheader("German → English Translation")
 
-st.write(
-    "Translate German text using a pretrained "
-    "Transformer-based neural machine translation model."
-)
 
 
 
@@ -440,3 +437,9 @@ with practice_tab:
                 f"Model inference latency: {latency_ms:.2f} ms"
             )
 
+# ============================================================
+# TAB 3 — HUMAN PREFERENCE EVALUATION
+# ============================================================
+
+with preference_tab:
+    render_human_preference_page()

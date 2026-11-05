@@ -223,3 +223,36 @@ Day 11:
 - **Why it's Better**: Because it leverages a shared cross-lingual embedding space, COMET detects semantic similarity even if the machine translation uses completely different words than the reference text. It has a much higher correlation with human quality judgments than traditional overlap-based metrics
 
 Unbabel/wmt22-comet-da: is a reference-based COMET model.
+
+Day 13
+Metrics comparison: BLEU, chrF and COMET
+
+BLEU: How closely does the generated translation match the reference translation in terms of words and phrases?
+chrF: How similar are the generated and reference translations at the character level?
+COMET: How well does the generated translation preserve the meaning of the original sentence?
+
+**Error Taxonomy** 
+It is a structured classification system used to identify, categorize and analyze the mistakes made by a machine learning model. 
+For example for our project: It helps answering the following question:
+'What types of translation errors do E0, E1 and E2 make, how frequently do they occur, and how serious are they?" as BLEU, chrF and COMET measure translation quality, but do not directly explain *why* a translation is incorrect. 
+
+The main error categories are: 'Semantic', 'Omission', 'Addition', Terminology', 'Grammar', 'Formatting', 'Negociation/mearning reversal' and 'NUmerical / units'
+
+**Error severity**: Not all errors have the same consequences.
+
+**Minor**
+Stylistic or grammatical issue without a meaningful change in interpretation.
+Example: The application starts quickly → Application starts quickly.
+
+**Major**
+Meaning or technical accuracy is affected, but the error is unlikely to cause serious harm.
+Example: The driver is outdated → The software is outdated
+
+**Critical**
+A potentially dangerous instruction, meaning reversal, or serious operational error.
+Example: Do not disconnect the power → Disconnect the power.
+
+day 14:
+**Qwen2.5-3B-Instruct**: 
+It is a compact, instruction-tuned causal language model from Alibaba’s Qwen team, designed for chat, instruction following, structured output, coding, math, and multilingual text generation. It has 3.09 billion parameters. 
+We will use this model as it runs well locally. 
