@@ -203,4 +203,191 @@ E1 achieved the highest technical-domain performance.
 
 This supports the hypothesis that adapting a pretrained NMT system to software-related language can improve translation quality within the target domain.
 
-However, the improvement should be interpreted alongside E
+However, the improvement should be interpreted alongside E1's decline on the general test set.
+
+### 7.2 Domain specialization introduced a trade-off
+
+E1's general BLEU declined by approximately 9.72 points relative to E0.
+
+This is consistent with a domain adaptation trade-off: improving performance on specialized content can reduce performance on content outside that domain.
+
+The current evaluation demonstrates the trade-off but does not establish its precise cause. Additional experiments would be needed to distinguish catastrophic forgetting from other effects of fine-tuning and dataset differences.
+
+### 7.3 Mixed-domain training reduced the trade-off
+
+E2 retained strong technical-domain performance while outperforming E1 on the general-domain test set.
+
+Relative to E1:
+
+- Technical BLEU decreased by approximately 0.62 points.
+- General BLEU increased by approximately 4.97 points.
+
+E2 is therefore a practical candidate when one translation system must support both domains.
+
+### 7.4 The LLM baseline did not dominate
+
+E3 achieved lower BLEU and chrF than E0 on both domains.
+
+It also achieved the lowest technical COMET score.
+
+On the general dataset, however, E3's COMET score of 0.8584 was relatively close to E0's 0.8668.
+
+This makes E3 relevant for human evaluation despite its weaker lexical-overlap results.
+
+The results do not establish that LLMs are generally inferior to NMT. They compare specific models, adaptation strategies, inference configurations and datasets.
+
+### 7.5 Automated metrics do not provide a complete quality assessment
+
+The different rankings of E2 and E3 on the general dataset illustrate why multiple metrics are useful.
+
+A translation can differ substantially from a reference while still preserving meaning, or appear similar to the reference while introducing an important semantic error.
+
+A human evaluation is needed to examine preferences that automated metrics may not fully capture.
+
+---
+
+## 8. Limitations
+
+### 8.1 Model size and architecture are not controlled
+
+The comparison includes specialized NMT models and a general-purpose instruction-tuned LLM.
+
+Differences in architecture, parameter count, pretraining and adaptation mean that this is a practical system comparison rather than a controlled architectural experiment.
+
+### 8.2 Prompt and decoding sensitivity
+
+LLM translation performance may depend on prompt wording, generation settings, quantization and output-length limits.
+
+The present results describe the tested E3 configuration, not every possible Qwen configuration.
+
+### 8.3 Reference-based metric limitations
+
+BLEU and chrF rely on reference overlap.
+
+COMET offers a learned quality estimate but can still produce incorrect rankings.
+
+None of these metrics independently guarantees the preservation of meaning, terminology, negation, numbers or placeholders.
+
+### 8.4 Dataset representativeness
+
+KDE4 and Tatoeba/OPUS are useful evaluation datasets, but they do not represent all possible professional translation scenarios.
+
+Results may differ on longer documents, modern technical documentation, specialized terminology or conversational text.
+
+### 8.5 Unequal domain sizes
+
+The technical test set contains substantially more sentences than the general test set.
+
+Domain-specific results should therefore be reported separately rather than interpreted through an unqualified combined score.
+
+### 8.6 Human preferences have not yet been incorporated
+
+The Day 14 conclusions are based on automatic evaluation.
+
+Human evaluation may reveal differences in naturalness, readability and perceived adequacy that are not captured by the aggregate scores.
+
+### 8.7 Statistical significance has not been established
+
+The reported score differences have not been accompanied here by confidence intervals or significance tests.
+
+Small differences, especially between E1 and E2 on the technical domain, should not automatically be treated as statistically significant.
+
+---
+
+## 9. Reproducibility and Artifacts
+
+The primary Day 14 artifacts are located in:
+
+`results/day14_llm_baseline/`
+
+The aggregate comparison is stored in:
+
+`results/day14_llm_baseline/full_model_comparison.csv`
+
+Relevant evaluation scripts include:
+
+- `evaluation/day14_generate_llm.py`
+- `evaluation/day14_recover_truncations.py`
+- `evaluation/day14_compare_pilot.py`
+- `evaluation/day14_evaluate_comet_pilot.py`
+- `evaluation/day14_evaluate_comet_full.py`
+
+### Reproducibility considerations
+
+The final research record should preserve:
+
+1. Model identifiers and revisions.
+2. Dataset versions and evaluation split definitions.
+3. The E3 translation prompt.
+4. Quantization and generation settings.
+5. Sentence alignment and recovery procedures.
+6. BLEU, chrF and COMET implementation details.
+7. Software versions and execution environment.
+8. Final prediction counts and evaluation outputs.
+
+The exact commands and parameter values should be taken from the corresponding project scripts rather than reconstructed from memory.
+
+---
+
+## 10. Implications for the TransistorAI MVP
+
+The four-model comparison provides the quantitative foundation for the next stage of the project.
+
+The Streamlit MVP can present multiple translations for the same German source sentence, allowing users to compare systems directly.
+
+The interface should hide model identities during voting to reduce potential model-name bias.
+
+Human selections can then be compared with BLEU, chrF and COMET rankings.
+
+This creates a link between automated machine translation evaluation and human-centered assessment.
+
+---
+
+## 11. Next Steps
+
+### Day 15 — Human Preference Evaluation
+
+Implement and validate a Streamlit interface containing 200 German source sentences, with 100 technical and 100 general examples.
+
+For each sentence:
+
+- Display anonymized translations from E0, E1, E2 and E3.
+- Randomize translation presentation order.
+- Group identical translations to avoid duplicate options.
+- Store participant selections in SQLite.
+- Support participant identification and evaluation resumption.
+- Track evaluation progress independently for each domain.
+
+### Subsequent evaluation
+
+Use the collected votes to compare human preferences against automated metric rankings.
+
+Investigate cases in which human choices disagree with BLEU, chrF or COMET.
+
+Where feasible, report agreement statistics and analyze differences by domain, model and error category.
+
+### Final MVP and presentation
+
+Integrate the findings into the Streamlit application and final presentation, emphasizing:
+
+- The benefit of technical-domain adaptation.
+- The general-language trade-off.
+- The role of mixed-domain fine-tuning.
+- The value and limitations of the LLM baseline.
+- The relationship between automated metrics and human preferences.
+
+---
+
+## 12. Conclusion
+
+Day 14 established a four-system comparison framework for TransistorAI.
+
+The results demonstrate that technical fine-tuning can substantially improve translation quality on the target domain, but that specialization may reduce general-language performance.
+
+Mixed-domain fine-tuning provided a more balanced alternative, while the Qwen LLM baseline offered a useful comparison against the NMT systems.
+
+The most important conclusion is that **translation quality depends on the target domain, model adaptation and evaluation method**.
+
+The next stage will extend this quantitative evaluation with human preference data, helping determine whether users select the same translations that automated metrics rank highest.
+
+**Day 14 outcome:** Four-system automatic evaluation completed; human-centered evaluation is the next research milestone.
