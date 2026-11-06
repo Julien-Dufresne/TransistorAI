@@ -67,3 +67,16 @@ results/day11_evaluation/logs/
 /data/human_evaluation/*.sqlite3-*
 /data/human_evaluation/*.db
 /data/human_evaluation/*.db-*
+
+# Local evaluation databases
+data/exercises/*.sqlite3
+
+# Local dependency snapshots
+requirements_before_comet_compat_fix.txt
+requirements_before_comet_fix.txt
+# Local evaluation databases
+data/exercises/*.sqlite3
+
+# Local dependency snapshots
+requirements_before_comet_compat_fix.txt
+requirements_before_comet_fix.txt

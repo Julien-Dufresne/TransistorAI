@@ -4,11 +4,24 @@
 # Transformers loads the pretrained model and tokenizer.
 # time.perf_counter() measures elapsed time precisely.
 
+import json
+
+from evaluation.streamlit_error_analysis import (
+    analyze_translation,
+)
+from evaluation.streamlit_attempts import (
+    save_attempt,
+    get_attempt,
+    save_scores,
+)
+
 import time
 import streamlit as st
 import torch
 from human_preference_page import render_human_preference_page
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+from human_analytics_page import render_human_analytics_page
 
 # Import the five exercises and comparison function.
 from src.learning import EXERCISES, compare_translations
@@ -24,7 +37,7 @@ import pandas as pd
 from evaluation.streamlit_metrics import (
     calculate_translation_metrics,
 )
-from evaluation.streamlit_comet import calculate_comet_scores
+from evaluation.comet_subprocess import calculate_comet_isolated
 
 # STEP 2 — Define model and decoding configuration
 # Keep the same configuration as Day 2 to make results
@@ -171,10 +184,11 @@ st.title("🌍 TransistorAI")
 # The first tab handles normal translation.
 # The second tab contains interactive translation exercises.
 
-translate_tab, practice_tab, preference_tab = st.tabs([
+translate_tab, practice_tab, preference_tab, human_analytics_tab = st.tabs([
     "🌍 Translate",
     "🎓 Test Yourself",
     "🏆 Human Preference Evaluation",
+    "📊 Human Evaluation Analytics",
 ])
 
 
@@ -307,135 +321,232 @@ with practice_tab:
 )
     
     
-    if st.button("Evaluate translation", type="primary"):
+    
+    # ========================================================
+    # STAGE 1 — SUBMIT AND ANALYZE
+    # ========================================================
+
+    exercise_key = f"{domain}_{exercise['id']}"
+    state_key = "practice_active_attempt"
+
+    if st.button("Analyze translation", type="primary"):
 
         if not user_answer.strip():
             st.warning("Please enter a translation.")
 
         else:
-            # Retrieve the independent English reference.
+            source = str(exercise["source"])
             reference = str(exercise["reference"])
 
-            with st.spinner("Generating model translation..."):
-
-                print("PRACTICE DEBUG 1: Loading model", flush=True)
-
-                tokenizer, model = load_translation_model(
-                    MODELS["de-en"]
-                )
-
-                print("PRACTICE DEBUG 2: Model loaded", flush=True)
-
-                model_answer, latency_ms = translate(
-                    exercise["source"],
-                    tokenizer,
-                    model,
-                )
-
-                print("PRACTICE DEBUG 3: Translation completed", flush=True)
-                print(f"Model output: {model_answer}", flush=True)
-
-            # Evaluate both translations against the reference.
-            user_scores = calculate_translation_metrics(
-                user_answer,
-                reference,
+            analysis = analyze_translation(
+                source=source,
+                reference=reference,
+                prediction=user_answer,
             )
 
-            model_scores = calculate_translation_metrics(
-                model_answer,
-                reference,
+            attempt_id = save_attempt(
+                exercise_id=exercise["id"],
+                domain=domain,
+                source=source,
+                reference=reference,
+                user_translation=user_answer,
+                analysis=analysis,
             )
 
-            # Optional neural evaluation.
-            comet_scores = None
+            st.session_state[state_key] = {
+                "attempt_id": attempt_id,
+                "exercise_key": exercise_key,
+                "enable_comet": enable_comet,
+            }
 
-            if enable_comet:
-                try:
-                    with st.spinner("Calculating COMET scores..."):
-                        comet_scores = calculate_comet_scores(
-                            source=exercise["source"],
-                            user_translation=user_answer,
-                            model_translation=model_answer,
-                            reference=reference,
-                        )
-                except Exception as error:
-                    st.warning(
-                        f"COMET evaluation unavailable: {error}"
+    # ========================================================
+    # STAGE 2 — SHOW ERROR ANALYSIS
+    # ========================================================
+
+    active = st.session_state.get(state_key)
+
+    if active and active["exercise_key"] == exercise_key:
+
+        attempt = get_attempt(active["attempt_id"])
+
+        if attempt is None:
+            st.error("Saved attempt could not be found.")
+            st.stop()
+
+        st.markdown("### Translation error analysis")
+
+        st.write("**German source:**", attempt["source"])
+        st.write("**Your translation:**", attempt["user_translation"])
+        st.write("**Reference translation:**", attempt["reference"])
+
+        analysis = json.loads(attempt["rule_feedback"])
+
+        status_labels = {
+            "review_suggested": "Review suggested",
+            "no_difference_detected": "No difference detected",
+            "not_verified": "Not automatically verified",
+        }
+
+        for item in analysis:
+
+            with st.container(border=True):
+
+                st.markdown(
+                    f"**{item['category'].replace('_', ' ').title()}**"
+                )
+
+                st.caption(
+                    status_labels.get(
+                        item["status"],
+                        item["status"],
+                    )
+                )
+
+                st.write(item["explanation"])
+
+                st.caption(f"Rule: {item['rule']}")
+
+        st.info(
+            "These are heuristic checks, not verified errors. "
+            "Different wording may be equally correct."
+        )
+
+        # ====================================================
+        # STAGE 3 — REVEAL METRICS
+        # ====================================================
+
+        if attempt["scores_revealed_at"] is None:
+
+            if st.button(
+                "Reveal evaluation scores",
+                type="primary",
+                key=f"reveal_{attempt['attempt_id']}",
+            ):
+
+                with st.spinner("Generating model translation..."):
+
+                    tokenizer, model = load_translation_model(
+                        MODELS["de-en"]
                     )
 
-            # Display translations.
-            st.markdown("### Translation comparison")
-            st.write("**German source:**", exercise["source"])
-            st.write("**English reference:**", reference)
-            st.write("**Your translation:**", user_answer)
-            st.write("**Model translation:**", model_answer)
+                    model_answer, latency_ms = translate(
+                        attempt["source"],
+                        tokenizer,
+                        model,
+                    )
 
-            # Build the BLEU and chrF results.
+                user_scores = calculate_translation_metrics(
+                    attempt["user_translation"],
+                    attempt["reference"],
+                )
+
+                model_scores = calculate_translation_metrics(
+                    model_answer,
+                    attempt["reference"],
+                )
+
+                comet_scores = None
+
+                if active["enable_comet"]:
+
+                    try:
+                        with st.spinner("Calculating COMET scores..."):
+
+                            comet_scores = calculate_comet_isolated(
+                                source=attempt["source"],
+                                user_translation=attempt["user_translation"],
+                                model_translation=model_answer,
+                                reference=attempt["reference"],
+                            )
+
+                    except Exception as error:
+                        st.warning(
+                            f"COMET unavailable: {error}"
+                        )
+
+                save_scores(
+                    attempt_id=attempt["attempt_id"],
+                    user_scores=user_scores,
+                    model_scores=model_scores,
+                    model_translation=model_answer,
+                    comet_scores=comet_scores,
+                )
+
+                st.rerun()
+
+        else:
+
+            # =================================================
+            # STAGE 4 — DISPLAY SAVED SCORES
+            # =================================================
+
+            st.markdown("### Translation comparison")
+
+            st.write(
+                "**Model translation:**",
+                attempt["model_translation"],
+            )
+
             results = pd.DataFrame({
                 "Metric": ["BLEU", "chrF"],
                 "Your translation": [
-                    user_scores["bleu"],
-                    user_scores["chrf"],
+                    attempt["bleu"],
+                    attempt["chrf"],
                 ],
                 "Model translation": [
-                    model_scores["bleu"],
-                    model_scores["chrf"],
+                    attempt["model_bleu"],
+                    attempt["model_chrf"],
                 ],
             })
 
-            # Include COMET if evaluation succeeded.
-            if comet_scores is not None:
+            if attempt["comet"] is not None:
+
                 results = pd.concat([
                     results,
                     pd.DataFrame([{
                         "Metric": "COMET",
                         "Your translation": round(
-                            comet_scores["user_comet"], 4
+                            attempt["comet"], 4
                         ),
                         "Model translation": round(
-                            comet_scores["model_comet"], 4
+                            attempt["model_comet"], 4
                         ),
-                    }])
+                    }]),
                 ], ignore_index=True)
 
             st.markdown("### Evaluation metrics")
-            st.dataframe(results, hide_index=True)
-
-            # BLEU and chrF: 0–100 scale.
-            st.markdown("#### BLEU and chrF")
-            st.bar_chart(
-                results[
-                    results["Metric"].isin(["BLEU", "chrF"])
-                ].set_index("Metric")
+            st.dataframe(
+                results,
+                hide_index=True,
+                use_container_width=True,
             )
 
-            # COMET: separate scoring scale.
-            if comet_scores is not None:
+            st.markdown("#### BLEU and chrF")
+
+            st.bar_chart(
+                results[
+                    results["Metric"] == "COMET"
+                ].set_index("Metric"),
+                stack=False,
+                y_label="COMET score",
+            )
+
+            if attempt["comet"] is not None:
+
                 st.markdown("#### COMET")
+
                 st.bar_chart(
-                    pd.DataFrame({
-                        "Translation": [
-                            "Your translation",
-                            "Model translation",
-                        ],
-                        "COMET": [
-                            comet_scores["user_comet"],
-                            comet_scores["model_comet"],
-                        ],
-                    }).set_index("Translation")
+                    results[
+                        results["Metric"] == "COMET"
+                    ].set_index("Metric")
                 )
 
             st.caption(
-                "BLEU and chrF measure similarity to the "
-                "reference. COMET estimates translation "
-                "quality using a neural evaluation model. "
-                "Higher scores generally indicate better "
-                "translations, but none guarantees correctness."
+                "BLEU and chrF use a 0–100 scale. "
+                "COMET is a neural quality estimate "
+                "and uses a different scale."
             )
 
-            st.write(
-                f"Model inference latency: {latency_ms:.2f} ms"
-            )
 
 # ============================================================
 # TAB 3 — HUMAN PREFERENCE EVALUATION
@@ -443,3 +554,9 @@ with practice_tab:
 
 with preference_tab:
     render_human_preference_page()
+
+# ============================================================
+# TAB 4 — HUMAN EVALUATION ANALYTICS
+# ============================================================
+with human_analytics_tab:
+    render_human_analytics_page()
