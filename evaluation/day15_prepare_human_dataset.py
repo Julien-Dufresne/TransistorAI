@@ -101,11 +101,54 @@ def main():
 
     eligible = eligible[~identical_to_source].copy()
 
+    # Exclude confirmed malformed source-reference pairs.
+    excluded_evaluation_sources = {
+        "& HinzufügenThe results of the scanning",
+        "Plasma-MiniprogrammeItem will be automatically shown or hidden from the systray",
+    }
+
+    eligible = eligible[
+        ~eligible["source"].isin(excluded_evaluation_sources)
+    ].copy()
+
     # Remove repeated German source sentences.
     eligible = eligible.sort_values(
         ["domain", "dataset", "sentence_id"],
         key=lambda column: column.astype(str),
     ).drop_duplicates(subset=["source"])
+
+    # KDE4 technical source IDs with confirmed quality issues. We will remove them  from the evaluation dataset to avoid biasing the results.
+    EXCLUDED_TECHNICAL_IDS = {
+        2219,   # HE0001
+        6775,   # HE0007
+        4475,   # HE0019
+        10244,  # HE0058
+        9083,   # HE0082
+        11069,  # HE0083
+        9679,   # HE0086
+        11504,  # HE0132
+        10965,  # HE0154
+        8395,   # HE0173
+        12502,
+        2220,
+        7653,
+        10245,
+        7920,
+        12574,
+        7966,
+        1103,
+        1557,
+        7617,
+        3593,
+        4836,
+        }
+
+    eligible = eligible[
+        ~(
+            (eligible["domain"] == "technical")
+            & eligible["sentence_id"].isin(EXCLUDED_TECHNICAL_IDS)
+        )
+    ].copy()
 
     print("\nELIGIBLE SENTENCES BY DOMAIN")
     print(eligible["domain"].value_counts())

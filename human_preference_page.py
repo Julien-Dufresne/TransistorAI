@@ -3,7 +3,6 @@ import uuid
 import re
 
 import streamlit as st
-from evaluation.day15_human_preference import participant_exists
 
 from evaluation.day15_human_preference import (
     build_options,
@@ -25,6 +24,37 @@ def participant_sentence_order(df, participant_id):
     )
 
 
+# Fixed shared subset for inter-annotator agreement.
+# Keep this selection unchanged once real evaluation begins.
+
+SHARED_SENTENCES_PER_DOMAIN = 10
+SHARED_SUBSET_SEED = "transistorai-shared-v1"
+
+
+def get_shared_evaluation_ids(df):
+    shared_ids = []
+
+    for domain in ["general", "technical"]:
+        domain_df = df[df["domain"] == domain]
+
+        ordered = sorted(
+            domain_df["evaluation_id"].tolist(),
+            key=lambda evaluation_id: hashlib.sha256(
+                f"{SHARED_SUBSET_SEED}:{evaluation_id}".encode()
+            ).hexdigest(),
+        )
+
+        if len(ordered) < SHARED_SENTENCES_PER_DOMAIN:
+            raise ValueError(
+                f"Insufficient sentences in {domain}"
+            )
+
+        shared_ids.extend(
+            ordered[:SHARED_SENTENCES_PER_DOMAIN]
+        )
+
+    return shared_ids
+
 def render_human_preference_page():
     st.title("Human Preference Evaluation")
 
@@ -38,166 +68,150 @@ def render_human_preference_page():
         "Your selections will be saved for research evaluation."
     )
 
+    
     # ============================================================
-    # PARTICIPANT MANAGEMENT — NEW OR RESUME
+    # PARTICIPANT MANAGEMENT — AUTOMATIC
     # ============================================================
+
+    # Restore participant from the URL.
+    url_participant = str(
+        st.query_params.get("participant", "")
+    ).strip().lower()
 
     if "human_active_participant" not in st.session_state:
         st.session_state.human_active_participant = None
 
-    if "human_participant_mode" not in st.session_state:
-        st.session_state.human_participant_mode = "New evaluation"
+    if re.fullmatch(r"[0-9a-f]{32}", url_participant):
+        st.session_state.human_active_participant = url_participant
 
-    if "human_new_id" not in st.session_state:
-        st.session_state.human_new_id = None
+    participant_id = st.session_state.human_active_participant
+    completed = get_completed_ids(participant_id)
+    
+    if not participant_id:
+        st.info(
+            "Your evaluation is anonymous. "
+            "Your progress will be saved automatically."
+        )
 
-    with st.expander("Participant settings", expanded=True):
+        if st.button("Start evaluation", type="primary"):
+            participant_id = uuid.uuid4().hex
 
-        active_id = st.session_state.human_active_participant
+            st.session_state.human_active_participant = participant_id
+            st.query_params["participant"] = participant_id
 
-        if active_id:
-            st.success("Participant evaluation active")
+            st.rerun()
 
-            st.text_input(
-                "Your Participant ID",
-                value=active_id,
-                disabled=True,
-            )
+        return
 
-            st.code(active_id, language=None)
+    # Keep the URL synchronized with the active participant.
+    if st.query_params.get("participant") != participant_id:
+        st.query_params["participant"] = participant_id
 
-            st.caption(
-                "Save this ID to resume your evaluation "
-                "in a future browser session."
-            )
+    st.success("Your evaluation is active. Progress is saved automatically.")
 
-            if st.button("Switch participant"):
-                st.session_state.human_active_participant = None
-                st.session_state.human_new_id = None
-                st.rerun()
+    
+    with st.expander("Evaluation settings", expanded=False):
+        st.write("**Your participant ID**")
 
-        else:
-            mode = st.radio(
-                "What would you like to do?",
-                ["New evaluation", "Resume evaluation"],
-                key="human_participant_mode",
-            )
+        st.code(participant_id, language=None)
 
-            if mode == "New evaluation":
+        st.caption(
+            "This ID identifies your anonymous evaluation. "
+            "You can copy it if you want to keep a backup."
+        )
 
-                if st.session_state.human_new_id is None:
-                    st.session_state.human_new_id = uuid.uuid4().hex
+        st.divider()
 
-                new_id = st.session_state.human_new_id
+        st.write("**Resume your evaluation**")
 
-                st.write("Your new Participant ID:")
-                st.code(new_id, language=None)
+        st.info(
+            "Your progress is linked to this evaluation URL. "
+            "Bookmark the page or copy its URL to return later."
+        )
 
-                st.info(
-                    "Copy and save this ID before starting. "
-                    "You will need it to resume later."
-                )
+        st.caption(
+            "If you lose the URL but saved your participant ID, "
+            "you can restore the evaluation using the ID."
+        )
 
-                if st.button("Start evaluation", type="primary"):
-                    st.session_state.human_active_participant = new_id
-                    st.rerun()
+        st.divider()
 
-            else:
-                resume_id = st.text_input(
-                    "Enter your existing Participant ID",
-                    placeholder="Paste your 32-character ID",
-                    key="human_resume_id",
-                ).strip().lower()
+        if st.button("Start a different evaluation"):
+            st.session_state.human_active_participant = None
+            st.query_params.pop("participant", None)
+            st.rerun()
 
-                if st.button("Resume evaluation", type="primary"):
 
-                    if not re.fullmatch(r"[0-9a-f]{32}", resume_id):
-                        st.error(
-                            "Invalid Participant ID. "
-                            "Enter the 32-character hexadecimal ID."
-                        )
 
-                    elif not participant_exists(resume_id):
-                        st.error(
-                            "No saved votes were found for this ID. "
-                            "Check the ID or start a new evaluation."
-                        )
-
-                    else:
-                        st.session_state.human_active_participant = resume_id
-                        st.rerun()
-
-        participant_id = st.session_state.human_active_participant
-
-        if not participant_id:
-            st.info(
-                "Start a new evaluation or resume an existing one "
-                "to continue."
-            )
-            return
-
+    
     # ============================================================
-    # DATASET SELECTION
+    # SHARED EVALUATION + REMAINING SENTENCES
     # ============================================================
 
-    st.subheader("Choose evaluation dataset")
-
-    selected_domain = st.radio(
-        "Which type of translations would you like to evaluate?",
-        options=["general", "technical"],
-        format_func=lambda domain: {
-            "general": "🌍 General translations",
-            "technical": "💻 Technical translations",
-        }[domain],
-        horizontal=True,
-        key="preference_domain",
-    )
-
-    # Load the complete dataset.
     df = load_dataset()
 
-    # Keep only sentences from the selected domain.
-    df = df[
-        df["domain"] == selected_domain
-    ].reset_index(drop=True)
-
-    # Retrieve all previously completed evaluations.
+    participant_id = st.session_state.human_active_participant
     completed_all = get_completed_ids(participant_id)
 
-    # Count completed evaluations for the selected domain only.
-    completed = completed_all.intersection(
-        set(df["evaluation_id"])
+    shared_ids = get_shared_evaluation_ids(df)
+    shared_set = set(shared_ids)
+
+    completed_shared = shared_set.intersection(completed_all)
+
+    st.subheader("Evaluation progress")
+
+    st.progress(len(completed_all) / len(df))
+    st.caption(
+        f"{len(completed_all)} of {len(df)} sentences evaluated"
     )
 
-    total = len(df)
+    if len(completed_shared) < len(shared_ids):
+        st.info(
+            "Shared evaluation phase: "
+            f"{len(completed_shared)} of {len(shared_ids)} "
+            "sentences completed."
+        )
 
-    st.progress(len(completed) / total)
-    st.caption(f"{len(completed)} of {total} sentences evaluated")
+        remaining = [
+            evaluation_id
+            for evaluation_id in shared_ids
+            if evaluation_id not in completed_all
+        ]
 
-    ordered_ids = participant_sentence_order(df, participant_id)
+    else:
+        st.success("Shared evaluation completed!")
 
-    remaining = [
-        evaluation_id
-        for evaluation_id in ordered_ids
-        if evaluation_id not in completed
-    ]
+        remaining_ids = [
+            evaluation_id
+            for evaluation_id in participant_sentence_order(
+                df, participant_id
+            )
+            if evaluation_id not in shared_set
+            and evaluation_id not in completed_all
+        ]
+
+        remaining = remaining_ids
 
     if not remaining:
-        st.success(
-            f"You have completed all {total} "
-            f"{selected_domain} evaluations!"
-        )
+        st.success("You have completed all evaluations!")
         return
 
     evaluation_id = remaining[0]
 
-    row = df.set_index("evaluation_id", drop=False).loc[evaluation_id]
+    row = df.set_index(
+        "evaluation_id", drop=False
+    ).loc[evaluation_id]
+
+    total = len(df)
+
+   
+
 
     st.subheader("German source")
     st.write(row["source"])
 
     st.caption(
-        f"Sentence {len(completed) + 1} of {total} "
+        f"Sentence {len(completed_all) + 1} of {total} "
         f"· Domain: {row['domain']}"
     )
 
