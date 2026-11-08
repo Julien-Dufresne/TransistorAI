@@ -14,7 +14,7 @@ from evaluation.streamlit_attempts import (
     get_attempt,
     save_scores,
 )
-
+from pathlib import Path
 import time
 import streamlit as st
 import torch
@@ -60,6 +60,36 @@ DECODING_CONFIG = {
     "max_new_tokens": 128,  # Limit generated output length
 }
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+TRANSLATION_MODELS = {
+    "E0": {
+        "name": "Baseline NMT",
+        "path": "Helsinki-NLP/opus-mt-de-en",
+        "type": "nmt",
+    },
+    "E1": {
+        "name": "Technical NMT",
+        "path": str(
+            PROJECT_ROOT
+            / "results/day8-de-en-v2/technical-finetuned/final_model"
+        ),
+        "type": "nmt",
+    },
+    "E2": {
+        "name": "Mixed NMT",
+        "path": str(
+            PROJECT_ROOT
+            / "results/day8-de-en-v2/mixed-finetuned/final_model"
+        ),
+        "type": "nmt",
+    },
+    "E3": {
+        "name": "Qwen LLM",
+        "path": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+        "type": "llm",
+    },
+}
 
 # STEP 3 — Select the computation device
 # CUDA is used for NVIDIA GPUs.
@@ -169,6 +199,83 @@ def translate(text, tokenizer, model):
 
 
 
+def translate_qwen(text: str):
+    """
+    Generate a German-to-English translation with Qwen
+    using MLX on Apple Silicon.
+    """
+    from mlx_lm import load, stream_generate
+    from mlx_lm.sample_utils import make_sampler
+
+    model_id = TRANSLATION_MODELS["E3"]["path"]
+
+    model, tokenizer = load(model_id)
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a professional German-to-English translator. "
+                "Preserve terminology, numbers, placeholders, and negation. "
+                "Return only the English translation."
+            ),
+        },
+        {
+            "role": "user",
+            "content": text,
+        },
+    ]
+
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+    )
+
+    start = time.perf_counter()
+
+    output_parts = []
+
+    for response in stream_generate(
+        model,
+        tokenizer,
+        prompt=prompt,
+        max_tokens=128,
+        sampler=make_sampler(temp=0),
+    ):
+        output_parts.append(response.text)
+
+    elapsed_ms = (time.perf_counter() - start) * 1000
+
+    return "".join(output_parts).strip(), elapsed_ms
+
+
+def translate_with_model(text: str, model_key: str):
+    """Translate using one of the four TransistorAI systems."""
+
+    config = TRANSLATION_MODELS[model_key]
+
+    if config["type"] == "llm":
+        translation, latency = translate_qwen(text)
+
+    else:
+        tokenizer, model = load_translation_model(
+            config["path"]
+        )
+
+        translation, latency = translate(
+            text,
+            tokenizer,
+            model,
+        )
+
+    return {
+        "model": model_key,
+        "name": config["name"],
+        "translation": translation,
+        "latency_ms": latency,
+    }
+
 
 # STEP 6 — Configure the Streamlit interface
 # The page title and layout define the user experience.
@@ -200,6 +307,7 @@ translate_tab, practice_tab, preference_tab, human_analytics_tab = st.tabs([
 # TAB 1 — TRANSLATE
 # ============================================================
 
+
 with translate_tab:
 
     st.subheader("German → English Translation")
@@ -208,55 +316,131 @@ with translate_tab:
         "Enter German text:",
         placeholder="Enter your German text here...",
         height=120,
+        key="translation_source",
     )
 
-    if st.button("Translate", type="primary"):
+    comparison_mode = st.radio(
+        "Translation mode",
+        ["Single model", "Compare all models"],
+        horizontal=True,
+    )
+
+    model_labels = {
+        key: f"{key} — {config['name']}"
+        for key, config in TRANSLATION_MODELS.items()
+    }
+
+    selected_model = None
+
+    if comparison_mode == "Single model":
+        selected_model = st.selectbox(
+            "Choose translation model",
+            options=list(TRANSLATION_MODELS.keys()),
+            format_func=lambda key: model_labels[key],
+        )
+
+    if st.button("Translate", type="primary", key="translate_models"):
 
         if not source_text.strip():
             st.warning("Please enter some German text.")
 
         else:
-            with st.spinner("Generating translation..."):
-
-                print("DEBUG 1: Loading model", flush=True)
-
-                tokenizer, model = load_translation_model(
-                    MODELS["de-en"]
-                )
-
-                print("DEBUG 2: Model loaded", flush=True)
-
-                translation, latency_ms = translate(
-                    source_text,
-                    tokenizer,
-                    model,
-                )
-
-                print("DEBUG 3: Translation completed", flush=True)
-
-            log_translation(
-                source=source_text,
-                translation=translation,
-                model_id=MODEL_ID,
-                language_pair=LANGUAGE_PAIR,
-                latency_ms=latency_ms,
+            models_to_run = (
+                [selected_model]
+                if comparison_mode == "Single model"
+                else list(TRANSLATION_MODELS.keys())
             )
 
-            st.success("Translation completed!")
+            results = []
+            errors = []
 
-            st.markdown("### German source")
-            st.write(source_text)
+            for model_key in models_to_run:
+                with st.spinner(
+                    f"Generating translation with {model_labels[model_key]}..."
+                ):
+                    try:
+                        result = translate_with_model(
+                            source_text,
+                            model_key,
+                        )
 
-            st.markdown("### English translation")
-            st.write(translation)
+                        results.append(result)
 
-            st.markdown("### Model information")
-            st.write(f"**Model:** {MODEL_ID}")
-            st.write(f"**Device:** {DEVICE}")
-            st.write(f"**Latency:** {latency_ms:.2f} ms")
+                        log_translation(
+                            source=source_text,
+                            translation=result["translation"],
+                            model_id=TRANSLATION_MODELS[model_key]["path"],
+                            language_pair=LANGUAGE_PAIR,
+                            latency_ms=result["latency_ms"],
+                        )
 
-            with st.expander("Decoding configuration"):
-                st.json(DECODING_CONFIG)
+                    except Exception as exc:
+                        errors.append(
+                            f"{model_labels[model_key]}: {exc}"
+                        )
+
+            st.session_state["translation_results"] = results
+            st.session_state["translation_errors"] = errors
+            st.session_state["translation_input"] = source_text
+
+    results = st.session_state.get("translation_results", [])
+    errors = st.session_state.get("translation_errors", [])
+
+    if results:
+
+        st.success(
+            f"Generated {len(results)} translation(s) successfully."
+        )
+
+        st.markdown("### German source")
+        st.write(st.session_state["translation_input"])
+
+        st.markdown("### English translations")
+
+        for result in results:
+
+            with st.container(border=True):
+                st.markdown(
+                    f"#### {result['model']} — {result['name']}"
+                )
+
+                st.write(result["translation"])
+
+                st.caption(
+                    f"Latency: {result['latency_ms']:.2f} ms"
+                )
+
+        if len(results) > 1:
+
+            st.markdown("### Model comparison")
+
+            comparison_df = pd.DataFrame(
+                [
+                    {
+                        "Model": f"{r['model']} — {r['name']}",
+                        "Translation": r["translation"],
+                        "Latency (ms)": round(r["latency_ms"], 2),
+                    }
+                    for r in results
+                ]
+            )
+
+            st.dataframe(
+                comparison_df,
+                hide_index=True,
+                use_container_width=True,
+            )
+
+        with st.expander("Decoding configuration"):
+            st.json(DECODING_CONFIG)
+            st.caption(
+                "These decoding settings apply to the NMT models. "
+                "Qwen uses separate MLX generation settings."
+            )
+
+    for error in errors:
+        st.error(error)
+
 
 
 # ============================================================
