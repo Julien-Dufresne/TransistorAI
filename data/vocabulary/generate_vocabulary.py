@@ -1,0 +1,406 @@
+
+"""
+Day 19 — Initial B1–B2 German vocabulary bank.
+
+Creates a CSV file containing German vocabulary,
+English translations, CEFR levels and categories.
+"""
+
+import csv
+from pathlib import Path
+
+output_path = Path("data/vocabulary/b1_b2_vocabulary.csv")
+output_path.parent.mkdir(parents=True, exist_ok=True)
+
+# Each tuple contains:
+# German expression, English translation, CEFR level, category.
+words = [
+    ("die Voraussetzung", "prerequisite", "B2", "work"),
+    ("die Verantwortung", "responsibility", "B1", "work"),
+    ("die Herausforderung", "challenge", "B1", "work"),
+    ("die Zusammenarbeit", "collaboration", "B1", "work"),
+    ("die Entscheidung", "decision", "B1", "work"),
+    ("die Erfahrung", "experience", "B1", "work"),
+    ("die Fähigkeit", "ability", "B1", "work"),
+    ("die Bewerbung", "job application", "B1", "work"),
+    ("die Weiterbildung", "further training", "B1", "work"),
+    ("die Besprechung", "meeting", "B1", "work"),
+    ("die Frist", "deadline", "B2", "work"),
+    ("die Genehmigung", "approval", "B2", "work"),
+
+    ("berücksichtigen", "to take into account", "B2", "verbs"),
+    ("gewährleisten", "to ensure", "B2", "verbs"),
+    ("vermeiden", "to avoid", "B1", "verbs"),
+    ("ermöglichen", "to enable", "B2", "verbs"),
+    ("feststellen", "to determine", "B1", "verbs"),
+    ("überzeugen", "to convince", "B1", "verbs"),
+    ("vergleichen", "to compare", "B1", "verbs"),
+    ("beantragen", "to apply for", "B1", "verbs"),
+    ("einschätzen", "to assess", "B2", "verbs"),
+    ("nachweisen", "to demonstrate or prove", "B2", "verbs"),
+    ("beeinflussen", "to influence", "B1", "verbs"),
+    ("verzichten auf", "to do without", "B2", "verbs"),
+
+    ("die Zuverlässigkeit", "reliability", "B2", "technology"),
+    ("die Auswertung", "analysis of results", "B2", "technology"),
+    ("die Verarbeitung", "processing", "B2", "technology"),
+    ("die Einstellung", "setting", "B1", "technology"),
+    ("die Verbindung", "connection", "B1", "technology"),
+    ("die Störung", "disruption or malfunction", "B1", "technology"),
+    ("die Sicherheit", "security or safety", "B1", "technology"),
+    ("die Anwendung", "application", "B1", "technology"),
+    ("die Entwicklung", "development", "B1", "technology"),
+    ("die Schnittstelle", "interface", "B2", "technology"),
+    ("die Anforderung", "requirement", "B2", "technology"),
+    ("die Einschränkung", "limitation", "B2", "technology"),
+
+    ("die Unsicherheit", "uncertainty", "B1", "emotions"),
+    ("die Enttäuschung", "disappointment", "B1", "emotions"),
+    ("die Erleichterung", "relief", "B2", "emotions"),
+    ("die Zufriedenheit", "satisfaction", "B1", "emotions"),
+    ("die Geduld", "patience", "B1", "emotions"),
+    ("die Sorge", "worry or concern", "B1", "emotions"),
+    ("die Begeisterung", "enthusiasm", "B2", "emotions"),
+    ("die Rücksicht", "consideration", "B2", "emotions"),
+    ("das Vertrauen", "trust", "B1", "emotions"),
+    ("der Zweifel", "doubt", "B2", "emotions"),
+    ("die Belastung", "strain or burden", "B2", "emotions"),
+    ("die Anerkennung", "recognition", "B2", "emotions"),
+
+    ("die Unterkunft", "accommodation", "B1", "travel"),
+    ("die Verspätung", "delay", "B1", "travel"),
+    ("die Buchung", "booking", "B1", "travel"),
+    ("die Erstattung", "refund", "B2", "travel"),
+    ("die Beschwerde", "complaint", "B1", "travel"),
+    ("die Umleitung", "detour", "B2", "travel"),
+    ("die Verfügbarkeit", "availability", "B2", "travel"),
+    ("die Versicherung", "insurance", "B1", "travel"),
+    ("die Bestätigung", "confirmation", "B1", "travel"),
+    ("die Gebühr", "fee", "B1", "travel"),
+    ("die Voraussetzung für die Einreise", "entry requirement", "B2", "travel"),
+    ("die Aufenthaltsgenehmigung", "residence permit", "B2", "travel"),
+]
+
+
+# ============================================================
+# DAY 19 — B1–B2 VOCABULARY EXPANSION
+# 240 additional entries for a 60-day learning program
+# ============================================================
+
+words.extend([
+    # WORK — 48 additional entries
+    ("die Arbeitsbelastung", "workload", "B2", "work"),
+    ("die Zuständigkeit", "responsibility or jurisdiction", "B2", "work"),
+    ("die Vereinbarung", "agreement", "B1", "work"),
+    ("die Verhandlung", "negotiation", "B2", "work"),
+    ("die Kündigung", "termination or resignation", "B1", "work"),
+    ("die Beschäftigung", "employment", "B1", "work"),
+    ("die Einarbeitung", "onboarding or induction", "B2", "work"),
+    ("die Beförderung", "promotion", "B2", "work"),
+    ("die Gehaltserhöhung", "salary increase", "B1", "work"),
+    ("die Rückmeldung", "feedback", "B1", "work"),
+    ("die Zielsetzung", "objective setting", "B2", "work"),
+    ("die Leistung", "performance", "B1", "work"),
+    ("die Abteilung", "department", "B1", "work"),
+    ("die Führungskraft", "manager or executive", "B2", "work"),
+    ("der Vorgesetzte", "supervisor", "B1", "work"),
+    ("die Belegschaft", "workforce", "B2", "work"),
+    ("die Arbeitsbedingungen", "working conditions", "B1", "work"),
+    ("die Vergütung", "remuneration", "B2", "work"),
+    ("die Stellenanzeige", "job advertisement", "B1", "work"),
+    ("das Vorstellungsgespräch", "job interview", "B1", "work"),
+    ("die Probezeit", "probationary period", "B1", "work"),
+    ("die Qualifikation", "qualification", "B1", "work"),
+    ("die Fachkenntnisse", "specialist knowledge", "B2", "work"),
+    ("die Eigeninitiative", "personal initiative", "B2", "work"),
+    ("die Belastbarkeit", "resilience under pressure", "B2", "work"),
+    ("die Selbstständigkeit", "independence", "B1", "work"),
+    ("die Vertraulichkeit", "confidentiality", "B2", "work"),
+    ("die Verpflichtung", "obligation", "B2", "work"),
+    ("die Arbeitszeitregelung", "working time arrangement", "B2", "work"),
+    ("die Überstunde", "overtime hour", "B1", "work"),
+    ("die Teilzeitbeschäftigung", "part-time employment", "B1", "work"),
+    ("die Vertretung", "substitute or representation", "B1", "work"),
+    ("die Übergabe", "handover", "B2", "work"),
+    ("die Abstimmung", "coordination", "B2", "work"),
+    ("die Umsetzung", "implementation", "B2", "work"),
+    ("die Planung", "planning", "B1", "work"),
+    ("die Priorität", "priority", "B1", "work"),
+    ("die Verbesserung", "improvement", "B1", "work"),
+    ("die Maßnahme", "measure or action", "B2", "work"),
+    ("der Fortschritt", "progress", "B1", "work"),
+    ("das Ergebnis", "result", "B1", "work"),
+    ("der Aufwand", "effort or expense", "B2", "work"),
+    ("der Nutzen", "benefit", "B2", "work"),
+    ("die Wirksamkeit", "effectiveness", "B2", "work"),
+    ("die Wirtschaftlichkeit", "cost-effectiveness", "B2", "work"),
+    ("die Nachhaltigkeit", "sustainability", "B2", "work"),
+    ("die Geschäftsführung", "company management", "B2", "work"),
+    ("die Personalentwicklung", "staff development", "B2", "work"),
+
+    # TECHNOLOGY — 38 additional entries
+    ("die Datenbank", "database", "B1", "technology"),
+    ("die Datenmenge", "volume of data", "B2", "technology"),
+    ("die Datenerfassung", "data collection", "B2", "technology"),
+    ("die Datenübertragung", "data transmission", "B2", "technology"),
+    ("die Datenqualität", "data quality", "B2", "technology"),
+    ("die Verschlüsselung", "encryption", "B2", "technology"),
+    ("die Berechtigung", "permission or authorization", "B2", "technology"),
+    ("der Zugriff", "access", "B2", "technology"),
+    ("die Benutzeroberfläche", "user interface", "B2", "technology"),
+    ("die Fehlermeldung", "error message", "B1", "technology"),
+    ("die Fehlerbehebung", "troubleshooting", "B2", "technology"),
+    ("die Sicherungskopie", "backup copy", "B2", "technology"),
+    ("die Speicherung", "storage", "B2", "technology"),
+    ("die Wiederherstellung", "restoration or recovery", "B2", "technology"),
+    ("die Aktualisierung", "update", "B1", "technology"),
+    ("die Kompatibilität", "compatibility", "B2", "technology"),
+    ("die Verknüpfung", "link or connection", "B2", "technology"),
+    ("die Automatisierung", "automation", "B2", "technology"),
+    ("die Vorhersage", "prediction", "B2", "technology"),
+    ("die Genauigkeit", "accuracy", "B2", "technology"),
+    ("die Abweichung", "deviation", "B2", "technology"),
+    ("die Kennzahl", "key metric", "B2", "technology"),
+    ("die Messung", "measurement", "B1", "technology"),
+    ("die Stichprobe", "sample", "B2", "technology"),
+    ("die Berechnung", "calculation", "B1", "technology"),
+    ("die Darstellung", "representation or visualization", "B2", "technology"),
+    ("die Erkennung", "recognition or detection", "B2", "technology"),
+    ("die Zuordnung", "assignment or mapping", "B2", "technology"),
+    ("die Klassifizierung", "classification", "B2", "technology"),
+    ("die Überwachung", "monitoring", "B2", "technology"),
+    ("die Auslastung", "utilization", "B2", "technology"),
+    ("die Rechenleistung", "computing power", "B2", "technology"),
+    ("die Speicherkapazität", "storage capacity", "B2", "technology"),
+    ("die Verzögerung", "latency or delay", "B2", "technology"),
+    ("die Verfügbarkeit des Systems", "system availability", "B2", "technology"),
+    ("die Wartung", "maintenance", "B2", "technology"),
+    ("die Einrichtung", "setup or configuration", "B1", "technology"),
+    ("die Fehleranfälligkeit", "susceptibility to errors", "B2", "technology"),
+
+    # VERBS — 38 additional entries
+    ("auswerten", "to evaluate or analyze", "B2", "verbs"),
+    ("durchführen", "to carry out", "B1", "verbs"),
+    ("umsetzen", "to implement", "B2", "verbs"),
+    ("überprüfen", "to check or verify", "B1", "verbs"),
+    ("anpassen", "to adapt or adjust", "B1", "verbs"),
+    ("erweitern", "to expand", "B1", "verbs"),
+    ("einschränken", "to restrict", "B2", "verbs"),
+    ("verfügen über", "to have at one's disposal", "B2", "verbs"),
+    ("abhängen von", "to depend on", "B1", "verbs"),
+    ("beitragen zu", "to contribute to", "B2", "verbs"),
+    ("sich beschäftigen mit", "to deal with or engage in", "B1", "verbs"),
+    ("sich beziehen auf", "to refer to", "B2", "verbs"),
+    ("sich eignen für", "to be suitable for", "B1", "verbs"),
+    ("sich ergeben aus", "to result from", "B2", "verbs"),
+    ("sich auswirken auf", "to affect or have an impact on", "B2", "verbs"),
+    ("sich bemühen um", "to make an effort to obtain", "B2", "verbs"),
+    ("sich entscheiden für", "to decide in favor of", "B1", "verbs"),
+    ("sich verlassen auf", "to rely on", "B1", "verbs"),
+    ("sich gewöhnen an", "to get used to", "B1", "verbs"),
+    ("sich erkundigen nach", "to inquire about", "B1", "verbs"),
+    ("sich auseinandersetzen mit", "to engage critically with", "B2", "verbs"),
+    ("vorschlagen", "to suggest", "B1", "verbs"),
+    ("zustimmen", "to agree", "B1", "verbs"),
+    ("widersprechen", "to contradict or disagree", "B2", "verbs"),
+    ("begründen", "to justify or explain", "B2", "verbs"),
+    ("behaupten", "to claim or assert", "B2", "verbs"),
+    ("erläutern", "to explain in detail", "B2", "verbs"),
+    ("hervorheben", "to emphasize", "B2", "verbs"),
+    ("zusammenfassen", "to summarize", "B1", "verbs"),
+    ("unterscheiden", "to distinguish", "B1", "verbs"),
+    ("einschließen", "to include or enclose", "B1", "verbs"),
+    ("ausschließen", "to exclude", "B2", "verbs"),
+    ("voraussetzen", "to presuppose or require", "B2", "verbs"),
+    ("bewältigen", "to cope with or overcome", "B2", "verbs"),
+    ("verhindern", "to prevent", "B1", "verbs"),
+    ("erreichen", "to achieve or reach", "B1", "verbs"),
+    ("aufrechterhalten", "to maintain", "B2", "verbs"),
+    ("nachvollziehen", "to understand or retrace", "B2", "verbs"),
+
+    # EMOTIONS — 28 additional entries
+    ("die Gelassenheit", "composure", "B2", "emotions"),
+    ("die Verzweiflung", "despair", "B2", "emotions"),
+    ("die Verlegenheit", "embarrassment", "B2", "emotions"),
+    ("die Empfindlichkeit", "sensitivity", "B2", "emotions"),
+    ("die Hilflosigkeit", "helplessness", "B2", "emotions"),
+    ("die Überforderung", "feeling overwhelmed", "B2", "emotions"),
+    ("die Wertschätzung", "appreciation", "B2", "emotions"),
+    ("die Verbundenheit", "sense of connection", "B2", "emotions"),
+    ("die Eifersucht", "jealousy", "B1", "emotions"),
+    ("die Sehnsucht", "longing", "B2", "emotions"),
+    ("die Wut", "anger or rage", "B1", "emotions"),
+    ("die Trauer", "grief", "B1", "emotions"),
+    ("die Scham", "shame", "B2", "emotions"),
+    ("die Hoffnung", "hope", "B1", "emotions"),
+    ("die Befürchtung", "apprehension", "B2", "emotions"),
+    ("die Entschlossenheit", "determination", "B2", "emotions"),
+    ("die Offenheit", "openness", "B2", "emotions"),
+    ("die Zurückhaltung", "restraint or reserve", "B2", "emotions"),
+    ("die Neugier", "curiosity", "B1", "emotions"),
+    ("die Anteilnahme", "sympathy or compassion", "B2", "emotions"),
+    ("das Mitgefühl", "compassion", "B2", "emotions"),
+    ("das Selbstbewusstsein", "self-confidence", "B1", "emotions"),
+    ("das Selbstwertgefühl", "self-esteem", "B2", "emotions"),
+    ("das Missverständnis", "misunderstanding", "B1", "emotions"),
+    ("der Vorwurf", "accusation or reproach", "B2", "emotions"),
+    ("der Konflikt", "conflict", "B1", "emotions"),
+    ("der Kompromiss", "compromise", "B1", "emotions"),
+    ("der Zusammenhalt", "solidarity or cohesion", "B2", "emotions"),
+
+    # TRAVEL AND ADMINISTRATION — 38 additional entries
+    ("die Anmeldung", "registration", "B1", "travel"),
+    ("die Abmeldung", "deregistration", "B1", "travel"),
+    ("die Ummeldung", "change of registration", "B2", "travel"),
+    ("die Aufenthaltserlaubnis", "residence permit", "B2", "travel"),
+    ("die Staatsangehörigkeit", "nationality or citizenship", "B1", "travel"),
+    ("die Meldebescheinigung", "registration certificate", "B2", "travel"),
+    ("die Beglaubigung", "official certification", "B2", "travel"),
+    ("die Vollmacht", "power of attorney", "B2", "travel"),
+    ("die Behörde", "public authority", "B1", "travel"),
+    ("das Bürgeramt", "citizens' office", "B1", "travel"),
+    ("das Formular", "form", "B1", "travel"),
+    ("der Antrag", "application or request", "B1", "travel"),
+    ("der Nachweis", "proof or evidence", "B2", "travel"),
+    ("der Bescheid", "official decision or notice", "B2", "travel"),
+    ("der Widerspruch", "formal objection", "B2", "travel"),
+    ("der Anspruch", "entitlement or claim", "B2", "travel"),
+    ("der Beitrag", "contribution or fee", "B1", "travel"),
+    ("der Zuschuss", "subsidy or grant", "B2", "travel"),
+    ("die Ermäßigung", "discount or reduction", "B1", "travel"),
+    ("die Rückerstattung", "reimbursement", "B2", "travel"),
+    ("die Stornierung", "cancellation", "B1", "travel"),
+    ("die Umbuchung", "rebooking", "B1", "travel"),
+    ("die Reservierung", "reservation", "B1", "travel"),
+    ("die Reiserücktrittsversicherung", "travel cancellation insurance", "B2", "travel"),
+    ("die Gepäckaufbewahrung", "luggage storage", "B2", "travel"),
+    ("die Anschlussverbindung", "connecting transport service", "B2", "travel"),
+    ("die Fahrplanänderung", "timetable change", "B1", "travel"),
+    ("die Streckensperrung", "route closure", "B2", "travel"),
+    ("die Verkehrsbehinderung", "traffic disruption", "B2", "travel"),
+    ("die Sehenswürdigkeit", "tourist attraction", "B1", "travel"),
+    ("die Führung", "guided tour", "B1", "travel"),
+    ("die Verpflegung", "meals or catering", "B2", "travel"),
+    ("die Nebenkosten", "additional costs", "B1", "travel"),
+    ("die Kaution", "security deposit", "B1", "travel"),
+    ("die Rechnung", "invoice or bill", "B1", "travel"),
+    ("die Quittung", "receipt", "B1", "travel"),
+    ("die Zahlungsfrist", "payment deadline", "B2", "travel"),
+    ("die Mahnung", "payment reminder", "B2", "travel"),
+
+    # EVERYDAY — 30 additional entries
+    ("der Haushalt", "household", "B1", "everyday"),
+    ("die Gewohnheit", "habit", "B1", "everyday"),
+    ("die Gelegenheit", "opportunity", "B1", "everyday"),
+    ("die Ausnahme", "exception", "B1", "everyday"),
+    ("die Ursache", "cause", "B1", "everyday"),
+    ("die Folge", "consequence", "B1", "everyday"),
+    ("der Zusammenhang", "connection or relationship", "B2", "everyday"),
+    ("die Auswahl", "selection", "B1", "everyday"),
+    ("die Umgebung", "surroundings", "B1", "everyday"),
+    ("die Nachbarschaft", "neighborhood", "B1", "everyday"),
+    ("die Rücksichtnahme", "consideration for others", "B2", "everyday"),
+    ("die Vereinbarkeit", "compatibility or work-life balance", "B2", "everyday"),
+    ("die Freizeitgestaltung", "leisure activities", "B2", "everyday"),
+    ("die Ernährung", "nutrition", "B1", "everyday"),
+    ("die Bewegung", "physical activity or movement", "B1", "everyday"),
+    ("die Erholung", "rest or recovery", "B1", "everyday"),
+    ("die Vorsorge", "prevention or precaution", "B2", "everyday"),
+    ("die Behandlung", "treatment", "B1", "everyday"),
+    ("die Untersuchung", "examination", "B1", "everyday"),
+    ("die Nebenwirkung", "side effect", "B2", "everyday"),
+    ("die Beschädigung", "damage", "B2", "everyday"),
+    ("die Reparatur", "repair", "B1", "everyday"),
+    ("die Anschaffung", "purchase or acquisition", "B2", "everyday"),
+    ("die Ersparnis", "saving", "B2", "everyday"),
+    ("die Ausgabe", "expense", "B1", "everyday"),
+    ("die Einnahme", "income or intake", "B1", "everyday"),
+    ("die Abrechnung", "billing or settlement", "B2", "everyday"),
+    ("die Verpflichtungen", "commitments or obligations", "B2", "everyday"),
+    ("die Lebensqualität", "quality of life", "B2", "everyday"),
+    ("die Veränderung", "change", "B1", "everyday"),
+
+    # SOCIETY — 20 additional entries
+    ("die Gleichberechtigung", "equal rights", "B2", "society"),
+    ("die Chancengleichheit", "equal opportunity", "B2", "society"),
+    ("die Vielfalt", "diversity", "B2", "society"),
+    ("die Integration", "integration", "B1", "society"),
+    ("die Ausgrenzung", "exclusion or marginalization", "B2", "society"),
+    ("die Benachteiligung", "disadvantage or discrimination", "B2", "society"),
+    ("die Gerechtigkeit", "justice or fairness", "B2", "society"),
+    ("die Ungleichheit", "inequality", "B2", "society"),
+    ("die Mitbestimmung", "participation in decision-making", "B2", "society"),
+    ("die Beteiligung", "participation", "B2", "society"),
+    ("die Gemeinschaft", "community", "B1", "society"),
+    ("die Öffentlichkeit", "the public", "B2", "society"),
+    ("die Bevölkerung", "population", "B1", "society"),
+    ("die Gesetzgebung", "legislation", "B2", "society"),
+    ("die Vorschrift", "regulation", "B2", "society"),
+    ("die Meinungsfreiheit", "freedom of expression", "B2", "society"),
+    ("die Verantwortung der Gesellschaft", "societal responsibility", "B2", "society"),
+    ("der gesellschaftliche Wandel", "social change", "B2", "society"),
+    ("der Fachkräftemangel", "shortage of skilled workers", "B2", "society"),
+    ("der Klimawandel", "climate change", "B1", "society"),
+])
+
+# Verify the expansion before CSV export.
+assert len(words) == 300, (
+    f"Expected 300 vocabulary entries, found {len(words)}"
+)
+
+print("Vocabulary expansion complete: 300 entries.")
+
+with output_path.open(
+    "w", newline="", encoding="utf-8"
+) as file:
+    writer = csv.writer(file)
+    writer.writerow(["german", "english", "level", "category"])
+    writer.writerows(words)
+
+
+# ============================================================
+# DAY 19 — VOCABULARY DATASET VALIDATION
+# ============================================================
+
+from collections import Counter
+
+# Check the number of entries in the vocabulary bank.
+print(f"Total vocabulary entries: {len(words)}")
+
+# Detect repeated German vocabulary entries.
+german_terms = [row[0].strip().casefold() for row in words]
+
+duplicates = [
+    term
+    for term, count in Counter(german_terms).items()
+    if count > 1
+]
+
+if duplicates:
+    raise ValueError(
+        f"Duplicate German entries found: {duplicates}"
+    )
+
+# Verify that every entry contains four required values.
+for index, row in enumerate(words, start=1):
+    if len(row) != 4:
+        raise ValueError(
+            f"Invalid entry at row {index}: {row}"
+        )
+
+    german, english, level, category = row
+
+    if not german.strip() or not english.strip():
+        raise ValueError(
+            f"Missing translation at row {index}"
+        )
+
+    if level not in {"B1", "B2"}:
+        raise ValueError(
+            f"Unexpected CEFR level at row {index}: {level}"
+        )
+
+print("Vocabulary validation passed.")
+
+
+print(f"Created {output_path} with {len(words)} entries.")

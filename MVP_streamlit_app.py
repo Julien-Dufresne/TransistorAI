@@ -14,6 +14,8 @@ from evaluation.streamlit_attempts import (
     get_attempt,
     save_scores,
 )
+
+from vocabulary_page import render_vocabulary_page
 from pathlib import Path
 import time
 import streamlit as st
@@ -287,18 +289,23 @@ st.set_page_config(
 )
 
 st.title("🌍 TransistorAI")
-# STEP 6A — Create two independent interface tabs.
-# The first tab handles normal translation.
-# The second tab contains interactive translation exercises.
 
-translate_tab, practice_tab, preference_tab, human_analytics_tab = st.tabs([
+# STEP 6A — Create the five main application tabs.
+# Each tab provides an independent TransistorAI feature.
+
+(
+    translate_tab,
+    practice_tab,
+    vocabulary_tab,
+    preference_tab,
+    human_analytics_tab,
+) = st.tabs([
     "🌍 Translate",
     "🎓 Test Yourself",
+    "📚 Daily Vocabulary",
     "🏆 Human Preference Evaluation",
     "📊 Human Evaluation Analytics",
 ])
-
-
 
 
 
@@ -732,15 +739,24 @@ with practice_tab:
             )
 
 
+
 # ============================================================
-# TAB 3 — HUMAN PREFERENCE EVALUATION
+# TAB 3 — DAILY GERMAN VOCABULARY
+# ============================================================
+
+with vocabulary_tab:
+    render_vocabulary_page()
+
+
+# ============================================================
+# TAB 4 — HUMAN PREFERENCE EVALUATION
 # ============================================================
 
 with preference_tab:
     render_human_preference_page()
 
 # ============================================================
-# TAB 4 — HUMAN EVALUATION ANALYTICS
+# TAB 5 — HUMAN EVALUATION ANALYTICS
 # ============================================================
 with human_analytics_tab:
     render_human_analytics_page()
