@@ -176,19 +176,43 @@ def render_human_analytics_page():
         "the models producing the selected translation."
     )
 
-    selected_preferences = (
-        preferences if domain == "overall"
-        else preferences[preferences["domain"] == domain]
+    
+    # ============================================================
+    # MODEL PREFERENCES — DOMAIN FILTERING AND OVERALL TOTALS
+    # ============================================================
+
+    # The preference analysis stores general and technical
+    # results separately. For the overall view, combine both.
+    if domain == "overall":
+        selected_preferences = preferences
+    else:
+        selected_preferences = preferences[
+            preferences["domain"] == domain
+        ]
+
+    # Initialize all four models with zero votes so the
+    # dashboard remains stable even when no data is available.
+    totals = pd.Series(
+        0.0,
+        index=["E0", "E1", "E2", "E3"],
+        name="fractional_selections",
     )
 
+    # Aggregate fractional selections across participants.
+    # Each original vote contributes exactly one total unit,
+    # even when multiple models produced identical text.
     if not selected_preferences.empty:
         totals = (
             selected_preferences.groupby("model")[
                 "fractional_selections"
             ]
             .sum()
-            .reindex(["E0", "E1", "E2", "E3"], fill_value=0)
+            .reindex(
+                ["E0", "E1", "E2", "E3"],
+                fill_value=0.0,
+            )
         )
+
 
         
     # Descriptive labels for the four translation models.
