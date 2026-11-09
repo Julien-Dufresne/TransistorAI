@@ -19,8 +19,8 @@ from src.vocabulary_db import (
 )
 from src.vocabulary_quiz import check_answer
 
-def render_vocabulary_page():
-    """Render the Daily German Vocabulary Trainer."""
+def render_vocabulary_page(learner_id):
+    """Render the vocabulary trainer for the selected user."""
 
     st.header("📚 Daily German Vocabulary")
     st.caption(
@@ -32,7 +32,7 @@ def render_vocabulary_page():
 
     # Keep the learner ID stable across browser sessions.
     # A fixed ID is suitable for this single-user local MVP.
-    learner_id = "default_learner"
+    
 
     today = date.today().isoformat()
 

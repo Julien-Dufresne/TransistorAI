@@ -1,6 +1,5 @@
 import hashlib
-import uuid
-import re
+
 
 import streamlit as st
 
@@ -56,7 +55,7 @@ def get_shared_evaluation_ids(df):
 
     return shared_ids
 
-def render_human_preference_page():
+def render_human_preference_page(user_id, username):
     st.title("Human Preference Evaluation")
 
     st.write(
@@ -71,135 +70,31 @@ def render_human_preference_page():
 
     
     
+        # ============================================================
+    # PARTICIPANT MANAGEMENT — USER PROFILE
     # ============================================================
-    # PARTICIPANT MANAGEMENT — NEW AND RETURNING PARTICIPANTS
-    # ============================================================
 
-    # A participant ID is a UUID represented by 32 hexadecimal characters.
-    # Normalize user input to allow uppercase IDs and surrounding spaces.
-    def normalize_participant_id(value):
-        return str(value).strip().lower()
+    if not user_id:
+        st.error("Please select a user profile first.")
+        st.stop()
 
-    def is_valid_participant_id(value):
-        return re.fullmatch(r"[0-9a-f]{32}", value) is not None
-
-    # Initialize the active participant only once per Streamlit session.
-    if "human_active_participant" not in st.session_state:
-        st.session_state.human_active_participant = None
-
-    # Restore a participant from the URL when possible.
-    url_participant = normalize_participant_id(
-        st.query_params.get("participant", "")
-    )
-
-    if is_valid_participant_id(url_participant):
-        # Only restore IDs that already have saved votes.
-        if participant_exists(url_participant):
-            st.session_state.human_active_participant = url_participant
-
-        # A newly created participant may not have voted yet.
-        elif (
-            st.session_state.human_active_participant
-            != url_participant
-        ):
-            st.query_params.pop("participant", None)
-
-    participant_id = st.session_state.human_active_participant
-
-    # ------------------------------------------------------------
-    # NEW PARTICIPANT / MANUAL RESUME
-    # ------------------------------------------------------------
-
-    if not participant_id:
-        st.info(
-            "Start a new anonymous evaluation or resume "
-            "using your existing Participant ID."
-        )
-
-        if st.button("Start new evaluation", type="primary"):
-            # Generate a unique participant identifier.
-            participant_id = uuid.uuid4().hex
-
-            st.session_state.human_active_participant = participant_id
-            st.query_params["participant"] = participant_id
-
-            st.rerun()
-
-        st.divider()
-
-        st.subheader("Resume an existing evaluation")
-
-        # Use a form to avoid triggering validation on every keystroke.
-        with st.form("resume_participant_form"):
-            entered_id = st.text_input(
-                "Participant ID",
-                placeholder="Enter your 32-character Participant ID",
-            )
-
-            resume_submitted = st.form_submit_button(
-                "Resume evaluation"
-            )
-
-        if resume_submitted:
-            entered_id = normalize_participant_id(entered_id)
-
-            if not is_valid_participant_id(entered_id):
-                st.error(
-                    "Invalid Participant ID format. "
-                    "Enter a 32-character hexadecimal ID."
-                )
-
-            elif not participant_exists(entered_id):
-                st.error(
-                    "No saved evaluation was found for this ID. "
-                    "Check the ID and try again."
-                )
-
-            else:
-                # Restore the participant and synchronize the URL.
-                st.session_state.human_active_participant = entered_id
-                st.query_params["participant"] = entered_id
-
-                st.rerun()
-
-        return
-
-    # ------------------------------------------------------------
-    # ACTIVE PARTICIPANT
-    # ------------------------------------------------------------
-
-    # Synchronize the URL with the current participant.
-    if st.query_params.get("participant") != participant_id:
-        st.query_params["participant"] = participant_id
+    participant_id = user_id
 
     st.success(
-        "Your evaluation is active. "
+        f"Evaluation active for {username}. "
         "Your progress is saved automatically."
     )
 
-    with st.expander("Evaluation settings", expanded=False):
-        st.write("**Your Participant ID**")
+    with st.expander("Evaluation settings"):
+        st.write("**Current user:**", username)
+        st.write("**Participant ID:**")
         st.code(participant_id, language=None)
 
-        st.caption(
-            "Save this ID or bookmark the current URL "
-            "to resume your evaluation later."
-        )
-
-        # Display the number of previously completed evaluations.
         completed_ids = get_completed_ids(participant_id)
 
         st.write(
             f"**Saved evaluations:** {len(completed_ids)}"
         )
-
-        st.divider()
-
-        if st.button("Switch participant"):
-            # Clear the active participant without deleting votes.
-            st.session_state.human_active_participant = None
-            st.query_params.pop("participant", None)
-            st.rerun()
 
 
 
@@ -211,7 +106,7 @@ def render_human_preference_page():
 
     df = load_dataset()
 
-    participant_id = st.session_state.human_active_participant
+    participant_id = user_id
     completed_all = get_completed_ids(participant_id)
 
     shared_ids = get_shared_evaluation_ids(df)

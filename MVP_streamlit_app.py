@@ -15,6 +15,11 @@ from evaluation.streamlit_attempts import (
     save_scores,
 )
 
+from user_selection_page import (
+    render_user_selection,
+    render_active_user_sidebar,
+)
+
 from vocabulary_page import render_vocabulary_page
 from pathlib import Path
 import time
@@ -288,6 +293,22 @@ st.set_page_config(
     layout="centered",
 )
 
+# ============================================================
+# USER SELECTION — APPLICATION ENTRY POINT
+# ============================================================
+
+active_user = render_user_selection()
+
+if active_user is None:
+    # Do not display the main application until a user is selected.
+    st.stop()
+
+active_user_id = active_user["user_id"]
+active_username = active_user["username"]
+
+render_active_user_sidebar()
+
+
 st.title("🌍 TransistorAI")
 
 # STEP 6A — Create the five main application tabs.
@@ -501,7 +522,7 @@ with practice_tab:
 
     user_answer = st.text_area(
         "Your English translation:",
-        key=f"answer_{domain}_{exercise['id']}",
+        key=f"answer_{active_user_id}_{domain}_{exercise['id']}",
         height=100,
     )
 
@@ -518,7 +539,7 @@ with practice_tab:
     # ========================================================
 
     exercise_key = f"{domain}_{exercise['id']}"
-    state_key = "practice_active_attempt"
+    state_key = f"practice_active_attempt_{active_user_id}"
 
     if st.button("Analyze translation", type="primary"):
 
@@ -542,6 +563,7 @@ with practice_tab:
                 reference=reference,
                 user_translation=user_answer,
                 analysis=analysis,
+                user_id=active_user_id,
             )
 
             st.session_state[state_key] = {
@@ -558,7 +580,10 @@ with practice_tab:
 
     if active and active["exercise_key"] == exercise_key:
 
-        attempt = get_attempt(active["attempt_id"])
+        attempt = get_attempt(
+            active["attempt_id"],
+            user_id=active_user_id,
+        )
 
         if attempt is None:
             st.error("Saved attempt could not be found.")
@@ -661,6 +686,7 @@ with practice_tab:
                     model_scores=model_scores,
                     model_translation=model_answer,
                     comet_scores=comet_scores,
+                    user_id=active_user_id,
                 )
 
                 st.rerun()
@@ -745,7 +771,7 @@ with practice_tab:
 # ============================================================
 
 with vocabulary_tab:
-    render_vocabulary_page()
+    render_vocabulary_page(learner_id=active_user_id)
 
 
 # ============================================================
@@ -753,7 +779,10 @@ with vocabulary_tab:
 # ============================================================
 
 with preference_tab:
-    render_human_preference_page()
+    render_human_preference_page(
+    user_id=active_user_id,
+    username=active_username,
+)
 
 # ============================================================
 # TAB 5 — HUMAN EVALUATION ANALYTICS
