@@ -303,8 +303,32 @@ def main():
     ).all():
         raise ValueError("Human vote domain mismatch")
 
-    print("Calculating sentence-level metrics...")
-    scores = build_sentence_metrics(human)
+    print("Loading verified Day 17 sentence-level metrics...")
+
+    scores = pd.read_csv(
+        "results/day17_human_metric_comparison/"
+        "sentence_metric_scores_comet.csv",
+        keep_default_na=False,
+    )
+
+    scores = scores.rename(
+        columns={
+            "BLEU": "bleu",
+            "chrF": "chrf",
+            "COMET": "comet",
+            "prediction": "translation",
+        }
+    )
+
+    required = {
+        "evaluation_id", "domain", "model",
+        "translation", "bleu", "chrf", "comet",
+    }
+
+    if not required.issubset(scores.columns):
+        raise ValueError(
+            f"Missing columns: {required - set(scores.columns)}"
+        )
 
     print("Comparing human selections...")
     comparison = compare_human_metrics(scores, votes)

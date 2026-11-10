@@ -540,3 +540,4 @@ def test_broken_path_fails_preservation():
     )
 
     assert result["passed"] is False
+

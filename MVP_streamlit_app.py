@@ -5,6 +5,7 @@
 # time.perf_counter() measures elapsed time precisely.
 
 import json
+from project_explorer_page import render_project_explorer_page
 
 from evaluation.streamlit_error_analysis import (
     analyze_translation,
@@ -290,7 +291,8 @@ def translate_with_model(text: str, model_key: str):
 st.set_page_config(
     page_title="TransistorAI",
     page_icon="🌍",
-    layout="centered",
+    layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 # ============================================================
@@ -315,12 +317,14 @@ st.title("🌍 TransistorAI")
 # Each tab provides an independent TransistorAI feature.
 
 (
+    project_explorer_tab,
     translate_tab,
     practice_tab,
     vocabulary_tab,
     preference_tab,
     human_analytics_tab,
 ) = st.tabs([
+    "📖 Project Explorer",
     "🌍 Translate",
     "🎓 Test Yourself",
     "📚 Daily Vocabulary",
@@ -328,11 +332,16 @@ st.title("🌍 TransistorAI")
     "📊 Human Evaluation Analytics",
 ])
 
+# ============================================================
+# TAB 1 — PROJECT EXPLORER
+# ============================================================
 
+with project_explorer_tab:
+    render_project_explorer_page()
 
 
 # ============================================================
-# TAB 1 — TRANSLATE
+# TAB 2 — TRANSLATE
 # ============================================================
 
 
@@ -425,18 +434,27 @@ with translate_tab:
 
         st.markdown("### English translations")
 
-        for result in results:
+        translation_columns = st.columns(
+            4,
+            gap="medium",
+        )
 
-            with st.container(border=True):
-                st.markdown(
-                    f"#### {result['model']} — {result['name']}"
-                )
+        for index, result in enumerate(results):
 
-                st.write(result["translation"])
+            with translation_columns[index % 4]:
 
-                st.caption(
-                    f"Latency: {result['latency_ms']:.2f} ms"
-                )
+                with st.container(border=True):
+
+                    st.markdown(
+                        f"#### {result['model']} — {result['name']}"
+                    )
+
+                    st.write(result["translation"])
+
+                    st.caption(
+                        f"Latency: {result['latency_ms']:.2f} ms"
+                    )
+
 
         if len(results) > 1:
 
@@ -472,7 +490,7 @@ with translate_tab:
 
 
 # ============================================================
-# TAB 2 — TEST YOURSELF SECTION
+# TAB 3 — TEST YOURSELF SECTION
 # ============================================================
 
 
@@ -496,41 +514,59 @@ with practice_tab:
 
     exercises = load_exercises()
 
-    domain = st.radio(
-        "Choose exercise category",
-        ["general", "technical"],
-        horizontal=True,
-        format_func=lambda x: x.title(),
+    exercise_col, translation_col = st.columns(
+        2,
+        gap="large",
     )
 
-    filtered = exercises[
-        exercises["domain"] == domain
-    ].reset_index(drop=True)
+    # LEFT — Exercise selection and German source
+    with exercise_col:
 
-    exercise_index = st.selectbox(
-        "Select an exercise",
-        range(len(filtered)),
-        format_func=lambda i: (
-            f"Exercise {i + 1} — {filtered.iloc[i]['focus']}"
-        ),
-    )
+        domain = st.radio(
+            "Choose exercise category",
+            ["general", "technical"],
+            horizontal=True,
+            format_func=lambda x: x.title(),
+        )
 
-    exercise = filtered.iloc[exercise_index]
+        filtered = exercises[
+            exercises["domain"] == domain
+        ].reset_index(drop=True)
 
-    st.info(exercise["source"])
-    st.caption(f"Focus: {exercise['focus']}")
+        exercise_index = st.selectbox(
+            "Select an exercise",
+            range(len(filtered)),
+            format_func=lambda i: (
+                f"Exercise {i + 1} — {filtered.iloc[i]['focus']}"
+            ),
+        )
 
-    user_answer = st.text_area(
-        "Your English translation:",
-        key=f"answer_{active_user_id}_{domain}_{exercise['id']}",
-        height=100,
-    )
+        exercise = filtered.iloc[exercise_index]
 
-    enable_comet = st.checkbox(
-    "Calculate COMET",
-    value=True,
-    help="Evaluate translation quality using a neural model.",
-)
+        st.info(exercise["source"])
+        st.caption(f"Focus: {exercise['focus']}")
+
+    # RIGHT — English translation and COMET
+    with translation_col:
+
+        user_answer = st.text_area(
+            "Your English translation:",
+            key=(
+                f"answer_{active_user_id}_"
+                f"{domain}_{exercise['id']}"
+            ),
+            height=150,
+            placeholder="Write your English translation here...",
+        )
+
+        enable_comet = st.checkbox(
+            "Calculate COMET",
+            value=True,
+            help=(
+                "Evaluate translation quality "
+                "using a neural model."
+            ),
+        )
     
     
     
@@ -541,7 +577,13 @@ with practice_tab:
     exercise_key = f"{domain}_{exercise['id']}"
     state_key = f"practice_active_attempt_{active_user_id}"
 
-    if st.button("Analyze translation", type="primary"):
+    with translation_col:
+        analyze_clicked = st.button(
+            "Analyze translation",
+            type="primary",
+        )
+
+    if analyze_clicked:
 
         if not user_answer.strip():
             st.warning("Please enter a translation.")
@@ -603,24 +645,34 @@ with practice_tab:
             "not_verified": "Not automatically verified",
         }
 
-        for item in analysis:
+        error_columns = st.columns(
+            2,
+            gap="medium",
+        )
 
-            with st.container(border=True):
+        for index, item in enumerate(analysis):
 
-                st.markdown(
-                    f"**{item['category'].replace('_', ' ').title()}**"
-                )
+            with error_columns[index % 2]:
 
-                st.caption(
-                    status_labels.get(
-                        item["status"],
-                        item["status"],
+                with st.container(border=True):
+
+                    st.markdown(
+                        f"**{item['category'].replace('_', ' ').title()}**"
                     )
-                )
 
-                st.write(item["explanation"])
+                    st.caption(
+                        status_labels.get(
+                            item["status"],
+                            item["status"],
+                        )
+                    )
 
-                st.caption(f"Rule: {item['rule']}")
+                    st.write(item["explanation"])
+
+                    st.caption(
+                        f"Rule: {item['rule']}"
+                    )
+
 
         st.info(
             "These are heuristic checks, not verified errors. "
@@ -767,7 +819,7 @@ with practice_tab:
 
 
 # ============================================================
-# TAB 3 — DAILY GERMAN VOCABULARY
+# TAB 4 — DAILY GERMAN VOCABULARY
 # ============================================================
 
 with vocabulary_tab:
@@ -775,7 +827,7 @@ with vocabulary_tab:
 
 
 # ============================================================
-# TAB 4 — HUMAN PREFERENCE EVALUATION
+# TAB 5 — HUMAN PREFERENCE EVALUATION
 # ============================================================
 
 with preference_tab:
@@ -785,7 +837,7 @@ with preference_tab:
 )
 
 # ============================================================
-# TAB 5 — HUMAN EVALUATION ANALYTICS
+# TAB 6 — HUMAN EVALUATION ANALYTICS
 # ============================================================
 with human_analytics_tab:
     render_human_analytics_page()

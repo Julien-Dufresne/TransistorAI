@@ -60,46 +60,55 @@ def render_vocabulary_page(learner_id):
 
     st.divider()
 
-    # New vocabulary section.
-    st.subheader("🆕 Today's New Words")
+    
+    # ========================================================
+    # DAILY VOCABULARY — SIDE-BY-SIDE LAYOUT
+    # ========================================================
 
-    if not new_words:
-        st.success(
-            "You have completed all available new vocabulary!"
-        )
-    else:
-        for index, word in enumerate(new_words, start=1):
-            with st.expander(
-                f"{index}. {word['german']} "
-                f"({word['level']})"
-            ):
-                st.write(f"**English:** {word['english']}")
-                st.caption(
-                    f"Category: {word['category'].capitalize()}"
-                )
+    new_col, review_col = st.columns(2, gap="large")
+
+    # LEFT COLUMN — Today's new words
+    with new_col:
+        st.subheader("🆕 Today's New Words")
+
+        if not new_words:
+            st.success(
+                "You have completed all available new vocabulary!"
+            )
+        else:
+            for index, word in enumerate(new_words, start=1):
+                with st.expander(
+                    f"{index}. {word['german']} "
+                    f"({word['level']})"
+                ):
+                    st.write(f"**English:** {word['english']}")
+                    st.caption(
+                        f"Category: {word['category'].capitalize()}"
+                    )
+
+    # RIGHT COLUMN — Words to review
+    with review_col:
+        st.subheader("🔁 Words to Review")
+
+        if not review_words:
+            st.info(
+                "No review words yet. Come back tomorrow "
+                "to review today's vocabulary."
+            )
+        else:
+            for index, word in enumerate(review_words, start=1):
+                with st.expander(
+                    f"{index}. {word['german']} "
+                    f"({word['level']})"
+                ):
+                    st.write(f"**English:** {word['english']}")
+                    st.caption(
+                        f"Category: {word['category'].capitalize()}"
+                    )
 
     st.divider()
 
-    # Review vocabulary section.
-    st.subheader("🔁 Words to Review")
 
-    if not review_words:
-        st.info(
-            "No review words yet. Come back tomorrow "
-            "to review today's vocabulary."
-        )
-    else:
-        for index, word in enumerate(review_words, start=1):
-            with st.expander(
-                f"{index}. {word['german']} "
-                f"({word['level']})"
-            ):
-                st.write(f"**English:** {word['english']}")
-                st.caption(
-                    f"Category: {word['category'].capitalize()}"
-                )
-
-    st.divider()
 
     
     # ========================================================
@@ -135,62 +144,106 @@ def render_vocabulary_page(learner_id):
 
     st.write(f"**Correct answers:** {correct}/{completed}")
 
-    for index, word in enumerate(daily_words, start=1):
-        word_id = word["word_id"]
-        german = word["german"]
-        expected = word["english"]
+    
+    # ========================================================
+    # DAILY VOCABULARY QUIZ — 5 QUESTIONS PER ROW
+    # ========================================================
 
-        st.markdown(f"**{index}. {german}**")
+    columns_per_row = 5
 
-        if word_id in attempts:
-            attempt = attempts[word_id]
+    for row_start in range(0, len(daily_words), columns_per_row):
 
-            if attempt["correct"]:
-                st.success(
-                    f"Correct! {german} → {expected}"
-                )
-            else:
-                st.error(
-                    f"Your answer: {attempt['answer']}\n\n"
-                    f"Expected: {expected}"
-                )
+        row_words = daily_words[
+            row_start:row_start + columns_per_row
+        ]
 
-        else:
-            with st.form(
-                key=f"vocabulary_quiz_{learner_id}_{today}_{word_id}"
-            ):
-                answer = st.text_input(
-                    "English translation",
-                    key=f"answer_{learner_id}_{today}_{word_id}",
-                )
+        quiz_columns = st.columns(
+            columns_per_row,
+            gap="small",
+        )
 
-                submitted = st.form_submit_button(
-                    "Check answer"
-                )
+        for offset, word in enumerate(row_words):
 
-            if submitted:
-                if not answer.strip():
-                    st.warning("Please enter an answer.")
-                else:
-                    is_correct = check_answer(
-                        answer,
-                        expected,
+            index = row_start + offset + 1
+
+            word_id = word["word_id"]
+            german = word["german"]
+            expected = word["english"]
+
+            with quiz_columns[offset]:
+
+                with st.container(border=True):
+
+                    st.markdown(
+                        f"**{index}. {german}**"
                     )
 
-                    saved = submit_daily_answer(
-                        learner_id=learner_id,
-                        word_id=word_id,
-                        user_answer=answer,
-                        is_correct=is_correct,
-                        study_date=today,
-                    )
+                    if word_id in attempts:
 
-                    if saved:
-                        st.rerun()
+                        attempt = attempts[word_id]
+
+                        if attempt["correct"]:
+                            st.success(
+                                f"Correct! {expected}"
+                            )
+                        else:
+                            st.error(
+                                f"Your answer: {attempt['answer']}\n\n"
+                                f"Expected: {expected}"
+                            )
+
                     else:
-                        st.info("This word was already answered.")
 
-        st.divider()
+                        with st.form(
+                            key=(
+                                f"vocabulary_quiz_"
+                                f"{learner_id}_{today}_{word_id}"
+                            )
+                        ):
+
+                            answer = st.text_input(
+                                "English translation",
+                                key=(
+                                    f"answer_{learner_id}_"
+                                    f"{today}_{word_id}"
+                                ),
+                            )
+
+                            submitted = st.form_submit_button(
+                                "Check answer"
+                            )
+
+                        if submitted:
+
+                            if not answer.strip():
+                                st.warning(
+                                    "Please enter an answer."
+                                )
+
+                            else:
+
+                                is_correct = check_answer(
+                                    answer,
+                                    expected,
+                                )
+
+                                saved = submit_daily_answer(
+                                    learner_id=learner_id,
+                                    word_id=word_id,
+                                    user_answer=answer,
+                                    is_correct=is_correct,
+                                    study_date=today,
+                                )
+
+                                if saved:
+                                    st.rerun()
+                                else:
+                                    st.info(
+                                        "This word was already answered."
+                                    )
+
+        st.write("")
+
 
     if total and completed == total:
         st.success(

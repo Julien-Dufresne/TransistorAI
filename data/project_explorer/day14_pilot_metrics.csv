@@ -1,0 +1,9 @@
+model,domain,bleu,chrf,comet,sample_size
+E0,technical,38.540,60.175,0.8353,50
+E1,technical,46.193,66.540,0.8880,50
+E2,technical,45.037,66.146,0.8858,50
+E3,technical,32.809,55.909,0.7988,50
+E0,general,43.574,67.938,0.8774,50
+E1,general,34.835,59.666,0.8356,50
+E2,general,38.321,65.150,0.8637,50
+E3,general,34.876,62.201,0.8751,50

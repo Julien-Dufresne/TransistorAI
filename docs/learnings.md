@@ -256,3 +256,7 @@ day 14:
 **Qwen2.5-3B-Instruct**: 
 It is a compact, instruction-tuned causal language model from Alibaba’s Qwen team, designed for chat, instruction following, structured output, coding, math, and multilingual text generation. It has 3.09 billion parameters. 
 We will use this model as it runs well locally. 
+
+day 15
+**Cohen's kappa**
+It is a statistical metric used to measure inter-rater reliability (or intra-rater reliability) for qualitative or categorical data. It tells you how consistently two different raters (or judges, doctors, or classification models) classify the same items, while subtracting out the agreement that would happen by pure chance
