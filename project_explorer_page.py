@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 import sacrebleu
+import altair as alt
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
@@ -232,9 +234,42 @@ def render_project_explorer_page():
             use_container_width=True,
         )
 
-        st.bar_chart(
-            dataset_df.set_index("Split"),
-            y_label="Sentence pairs",
+
+                # Reuse the verified dataset table
+        chart_data = dataset_df.melt(
+            id_vars="Split",
+            value_vars=["Technical", "General"],
+            var_name="Domain",
+            value_name="Sentence pairs",
+        )
+
+        chart = (
+            alt.Chart(chart_data)
+            .mark_bar()
+            .encode(
+                x=alt.X(
+                    "Split:N",
+                    title="Dataset split",
+                    sort=["Train", "Validation", "Test"],
+                ),
+                y=alt.Y(
+                    "Sentence pairs:Q",
+                    title="Sentence pairs",
+                    scale=alt.Scale(domain=[0, 150000]),
+                ),
+                color=alt.Color("Domain:N", title="Domain"),
+                tooltip=[
+                    "Split:N",
+                    "Domain:N",
+                    alt.Tooltip("Sentence pairs:Q", format=","),
+                ],
+            )
+            .properties(height=350)
+        )
+
+        st.altair_chart(
+            chart,
+            use_container_width=True,
         )
 
         st.metric(
@@ -251,32 +286,121 @@ def render_project_explorer_page():
         """)
 
         pipeline = [
-            ("1. Data collection",
-             "Load German–English sentence pairs from KDE4 and Tatoeba/OPUS."),
-
-            ("2. Data inspection",
-             "Inspect source and reference text, dataset sizes and data quality."),
-
-            ("3. Cleaning",
-             "Apply the project's preprocessing and quality-control rules."),
-
-            ("4. Dataset splitting",
-             "Organize examples into training, validation and test datasets."),
-
-            ("5. Tokenization",
-             "Convert sentences into token IDs using the model tokenizer."),
-
-            ("6. Model training",
-             "Use the prepared training data to fine-tune the translation models."),
-
-            ("7. Evaluation",
-             "Evaluate translations against held-out references using BLEU, chrF and COMET."),
+            (
+                "1. Parallel corpus alignment",
+                "Read German and English KDE4 files line by line. "
+                "Reject files with unequal line counts."
+            ),
+            (
+                "2. Text normalization",
+                "Repair encoding issues with ftfy, normalize Unicode "
+                "to NFC, and collapse unnecessary whitespace."
+            ),
+            (
+                "3. Remove empty and duplicate pairs",
+                "Remove pairs with empty source or target text "
+                "and deduplicate exact source-target pairs."
+            ),
+            (
+                "4. Sentence length filtering",
+                "Retain pairs containing between 2 and 100 words "
+                "in each language."
+            ),
+            (
+                "5. Quality checks",
+                "Detect KDE metadata, placeholder mismatches, "
+                "identical translations and extreme length ratios."
+            ),
+            (
+                "6. Quality filtering",
+                "Exclude metadata contamination, placeholder "
+                "mismatches and extreme length ratios. "
+                "Retain identical translations unless another "
+                "exclusion flag applies."
+            ),
+            (
+                "7. Mixed-domain preparation",
+                "For E2, combine general and sampled technical "
+                "training data under a fixed 101,401-example budget, "
+                "using random seed 42."
+            ),
+            (
+                "8. Data leakage prevention",
+                "Check for exact-pair overlap between training, "
+                "validation and test sets."
+            ),
         ]
 
         for title, description in pipeline:
             with st.expander(title):
                 st.write(description)
+                st.divider()
+        st.subheader("Reproducible Dataset Splitting")
 
+        st.markdown("""
+        The KDE4 technical corpus was split using unique
+        German source sentences rather than individual
+        translation pairs.
+
+        This prevents multiple translations of the same
+        German sentence from appearing in different splits.
+
+        **Target split proportions:**
+        - Training: 80%
+        - Validation: 10%
+        - Test: 10%
+
+        **Random seed:** 42
+
+        Because splitting is performed on unique sources,
+        the final sentence-pair percentages may differ
+        slightly from the target proportions.
+        """)
+
+        split_df = pd.DataFrame({
+            "Split": ["Training", "Validation", "Test"],
+            "Target percentage": [80, 10, 10],
+        })
+
+        st.bar_chart(
+            split_df.set_index("Split"),
+            y_label="Target percentage",
+        )
+
+        st.info(
+            "Data leakage prevention: German source sentences "
+            "are disjoint across the technical training, "
+            "validation and test sets."
+        )
+
+        st.divider()
+        st.subheader("E2 — Mixed-Domain Training")
+
+        technical_count = 76400
+        general_count = 25001
+
+        mixed_df = pd.DataFrame({
+            "Domain": ["Technical", "General"],
+            "Sentence pairs": [technical_count, general_count],
+        })
+
+        st.dataframe(
+            mixed_df,
+            hide_index=True,
+            use_container_width=True,
+        )
+
+        st.bar_chart(
+            mixed_df.set_index("Domain"),
+            y_label="Training sentence pairs",
+        )
+
+        st.caption(
+            "E2 uses a fixed budget of 101,401 training pairs. "
+            "All 25,001 general examples are included, with "
+            "76,400 technical examples sampled without replacement. "
+            "Counts assume the recorded general training size."
+        )
 
     
     with models_tab:
@@ -507,10 +631,320 @@ def render_project_explorer_page():
         LLM compares with specialized NMT systems.
         """)
 
+        
+        # =====================================================
+        # FULL-TEST MODEL COMPARISON
+        # =====================================================
+
         results_path = (
+            PROJECT_ROOT
+            / "results/day14_llm_baseline/full_model_comparison.csv"
+        )
+
+        st.subheader("Full-Test Evaluation — E0 to E3")
+
+        if not results_path.exists():
+            st.warning("Full-test evaluation results not found.")
+        else:
+            results_df = pd.read_csv(results_path)
+
+            st.caption(
+                "Technical: 12,623 sentences | "
+                "General: 1,997 sentences. "
+                "All four systems evaluated using BLEU, chrF and COMET."
+            )
+
+            metric = st.selectbox(
+                "Choose evaluation metric",
+                ["BLEU", "chrF", "COMET"],
+                key="explorer_full_metric",
+            )
+
+                        # Full-test evaluation chart with fixed axes
+            metric_max = {
+                "BLEU": 50,
+                "chrF": 75,
+                "COMET": 1.0,
+            }
+
+            chart = (
+                alt.Chart(results_df)
+                .mark_bar()
+                .encode(
+                    x=alt.X(
+                        "model:N",
+                        title="Translation system",
+                        sort=[
+                            "E0_baseline",
+                            "E1_technical",
+                            "E2_mixed",
+                            "E3_Qwen",
+                        ],
+                        axis=alt.Axis(labelAngle=0),
+                    ),
+                    xOffset=alt.XOffset("domain:N"),
+                    y=alt.Y(
+                        f"{metric}:Q",
+                        title=f"{metric} score",
+                        scale=alt.Scale(
+                            domain=[0, metric_max[metric]]
+                        ),
+                    ),
+                    color=alt.Color(
+                        "domain:N",
+                        title="Domain",
+                    ),
+                    tooltip=[
+                        alt.Tooltip("model:N", title="Model"),
+                        alt.Tooltip("domain:N", title="Domain"),
+                        alt.Tooltip(
+                            f"{metric}:Q",
+                            title=metric,
+                            format=".4f",
+                        ),
+                    ],
+                )
+                .properties(height=350)
+            )
+
+            st.altair_chart(
+                chart,
+                use_container_width=True,
+            )
+
+            st.dataframe(
+                results_df.round(4),
+                hide_index=True,
+                use_container_width=True,
+            )
+
+            st.subheader("Best Model by Domain")
+
+            for domain in ["technical", "general"]:
+                domain_df = results_df[
+                    results_df["domain"] == domain
+                ]
+
+                winner = domain_df.loc[
+                    domain_df["BLEU"].idxmax()
+                ]
+
+                st.success(
+                    f"{domain.title()}: {winner['model']} "
+                    f"(BLEU {winner['BLEU']:.2f}, "
+                    f"chrF {winner['chrF']:.2f}, "
+                    f"COMET {winner['COMET']:.4f})"
+                )
+
+        # =====================================================
+        # DAY 14 PILOT — SEPARATE FROM FULL TEST
+        # =====================================================
+
+        pilot_path = (
             PROJECT_ROOT
             / "data/project_explorer/day14_pilot_metrics.csv"
         )
+
+        with st.expander("Day 14 — 100-Sentence Pilot"):
+            st.caption(
+                "Pilot sample: 50 technical and 50 general sentences. "
+                "These scores are not directly interchangeable "
+                "with full-test scores."
+            )
+
+            if pilot_path.exists():
+                pilot_df = pd.read_csv(pilot_path)
+
+                st.dataframe(
+                    pilot_df,
+                    hide_index=True,
+                    use_container_width=True,
+                )
+            else:
+                st.warning("Pilot results not found.")
+
+        # =====================================================
+        # KEY FINDINGS
+        # =====================================================
+
+        st.divider()
+        st.subheader("Key Experimental Findings")
+
+        with st.expander(
+            "Finding 1 — Technical specialization",
+            expanded=True,
+        ):
+            st.markdown("""
+            E1 achieved the highest technical BLEU, chrF
+            and COMET scores on the full test set.
+
+            Fine-tuning on KDE4 technical data improved
+            translation quality in the target domain.
+            """)
+
+        with st.expander(
+            "Finding 2 — General-domain trade-off"
+        ):
+            st.markdown("""
+            E0 achieved the highest general-domain scores.
+
+            E1 performed substantially worse on general
+            text, consistent with a domain-specialization
+            trade-off.
+
+            The results alone do not establish the exact
+            cause of this performance reduction.
+            """)
+
+        with st.expander(
+            "Finding 3 — Mixed-domain fine-tuning"
+        ):
+            st.markdown("""
+            E2 approached E1's technical performance
+            while retaining stronger general-domain
+            performance than E1.
+
+            Mixed-domain training offers a useful
+            compromise between specialization and
+            generalization in these experiments.
+            """)
+
+        with st.expander(
+            "Finding 4 — NMT vs LLM"
+        ):
+            st.markdown("""
+            E3 (Qwen) underperformed the specialized
+            NMT systems on technical translation.
+
+            Its general-domain COMET score was relatively
+            close to E0, although BLEU and chrF were lower.
+
+            This demonstrates why complementary
+            evaluation metrics are useful.
+            """)
+
+        # =====================================================
+        # HUMAN EVALUATION
+        # =====================================================
+
+        st.divider()
+        st.subheader("Human Preferences vs Automatic Metrics")
+
+        human_path = (
+            PROJECT_ROOT
+            / "results/day17_human_metrics/metric_agreement_summary.csv"
+        )
+
+        agreement_path = (
+            PROJECT_ROOT
+            / "results/day16_human_agreement/agreement_summary.csv"
+        )
+
+        if human_path.exists():
+            human_df = pd.read_csv(human_path)
+
+            overall = human_df[
+                human_df["domain"] == "overall"
+            ].copy()
+
+            st.markdown("#### Day 17 — Metric Agreement")
+
+            st.dataframe(
+                overall[
+                    [
+                        "metric",
+                        "votes",
+                        "unique_sentences",
+                        "strict_agreement_percent",
+                    ]
+                ],
+                hide_index=True,
+                use_container_width=True,
+            )
+
+                        # Human vs automatic metric agreement
+            agreement_chart = (
+                alt.Chart(overall)
+                .mark_bar(size=75)
+                .encode(
+                    x=alt.X(
+                        "metric:N",
+                        title="Evaluation metric",
+                        sort=["bleu", "chrf", "comet"],
+                        axis=alt.Axis(labelAngle=0),
+                    ),
+                    y=alt.Y(
+                        "strict_agreement_percent:Q",
+                        title="Strict agreement (%)",
+                        scale=alt.Scale(domain=[0, 100]),
+                    ),
+                    tooltip=[
+                        alt.Tooltip("metric:N", title="Metric"),
+                        alt.Tooltip(
+                            "strict_agreement_percent:Q",
+                            title="Agreement",
+                            format=".1f",
+                        ),
+                        alt.Tooltip(
+                            "votes:Q",
+                            title="Human votes",
+                        ),
+                    ],
+                )
+                .properties(height=300)
+            )
+
+            st.altair_chart(
+                agreement_chart,
+                use_container_width=True,
+            )
+
+        if agreement_path.exists():
+            agreement_df = pd.read_csv(agreement_path)
+
+            overall_agreement = agreement_df[
+                agreement_df["domain"] == "overall"
+            ]
+
+            if not overall_agreement.empty:
+                agreement = overall_agreement.iloc[0]
+
+                st.metric(
+                    "Day 16 — Inter-rater Exact Agreement",
+                    f"{agreement['exact_agreement_percent']:.1f}%",
+                )
+
+                st.caption(
+                    f"Based on "
+                    f"{int(agreement['participant_pairs'])} "
+                    "shared sentence comparisons."
+                )
+
+        st.info(
+            "Human evaluation is exploratory. The preliminary "
+            "Day 17 analysis includes only 25 votes across "
+            "21 unique sentences. Repeated votes and ties "
+            "must be considered when interpreting agreement."
+        )
+
+        # =====================================================
+        # LIMITATIONS
+        # =====================================================
+
+        st.divider()
+        st.subheader("Evaluation Limitations")
+
+        st.markdown("""
+        - BLEU and chrF depend on reference wording.
+        - COMET is a learned metric and is not infallible.
+        - Automatic scores do not replace human evaluation.
+        - The human preference sample remains small.
+        - Model architecture and inference settings differ.
+        - Results are specific to the evaluated datasets.
+        - Higher automatic scores do not guarantee better
+          translations for every individual sentence.
+        """)
+
 
         if not results_path.exists():
             st.warning("Pilot results CSV not found.")
@@ -527,9 +961,9 @@ def render_project_explorer_page():
             )
 
             metric_labels = {
-                "BLEU": "bleu",
-                "chrF": "chrf",
-                "COMET": "comet",
+                "BLEU": "BLEU",
+                "chrF": "chrF",
+                "COMET": "COMET",
             }
 
             selected_metric = st.selectbox(
@@ -540,17 +974,56 @@ def render_project_explorer_page():
 
             metric_column = metric_labels[selected_metric]
 
-            chart_df = results_df.pivot(
-                index="model",
-                columns="domain",
-                values=metric_column,
+                        # Full-test evaluation chart with fixed axes
+            metric_max = {
+                "BLEU": 50,
+                "chrF": 75,
+                "COMET": 1.0,
+            }
+
+            chart = (
+                alt.Chart(results_df)
+                .mark_bar()
+                .encode(
+                    x=alt.X(
+                        "model:N",
+                        title="Translation system",
+                        sort=[
+                            "E0_baseline",
+                            "E1_technical",
+                            "E2_mixed",
+                            "E3_Qwen",
+                        ],
+                        axis=alt.Axis(labelAngle=0),
+                    ),
+                    xOffset=alt.XOffset("domain:N"),
+                    y=alt.Y(
+                        f"{metric}:Q",
+                        title=f"{metric} score",
+                        scale=alt.Scale(
+                            domain=[0, metric_max[metric]]
+                        ),
+                    ),
+                    color=alt.Color(
+                        "domain:N",
+                        title="Domain",
+                    ),
+                    tooltip=[
+                        alt.Tooltip("model:N", title="Model"),
+                        alt.Tooltip("domain:N", title="Domain"),
+                        alt.Tooltip(
+                            f"{metric}:Q",
+                            title=metric,
+                            format=".4f",
+                        ),
+                    ],
+                )
+                .properties(height=350)
             )
 
-            st.bar_chart(
-                chart_df,
-                x_label="Translation system",
-                y_label=f"{selected_metric} score",
-                stack=False,
+            st.altair_chart(
+                chart,
+                use_container_width=True,
             )
 
             st.subheader("Detailed Results")
