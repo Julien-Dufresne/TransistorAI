@@ -1,0 +1,9 @@
+model,domain,n,BLEU,chrF,COMET
+E0_baseline,technical,50,38.54,60.175,0.8353
+E0_baseline,general,50,43.574,67.938,0.8774
+E1_technical,technical,50,46.193,66.54,0.888
+E1_technical,general,50,34.835,59.666,0.8356
+E2_mixed,technical,50,45.037,66.146,0.8858
+E2_mixed,general,50,38.321,65.15,0.8637
+E3_Qwen,technical,50,32.809,55.909,0.7988
+E3_Qwen,general,50,34.876,62.201,0.8751

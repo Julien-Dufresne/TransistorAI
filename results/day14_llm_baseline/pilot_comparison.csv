@@ -1,0 +1,13 @@
+model,domain,n,BLEU,chrF
+E0_baseline,technical,50,38.54,60.175
+E0_baseline,general,50,43.574,67.938
+E0_baseline,all,100,42.159,65.339
+E1_technical,technical,50,46.193,66.54
+E1_technical,general,50,34.835,59.666
+E1_technical,all,100,38.857,61.952
+E2_mixed,technical,50,45.037,66.146
+E2_mixed,general,50,38.321,65.15
+E2_mixed,all,100,40.648,65.476
+E3_Qwen,technical,50,32.809,55.909
+E3_Qwen,general,50,34.876,62.201
+E3_Qwen,all,100,34.397,60.082

@@ -1,0 +1,9 @@
+model,domain,n,BLEU,chrF
+E0_baseline,technical,12623,35.1068,57.9039
+E1_technical,technical,12623,40.5126,61.8439
+E2_mixed,technical,12623,39.8935,61.4829
+E3_Qwen,technical,12623,29.1308,54.0144
+E0_baseline,general,1997,40.4083,65.4857
+E1_technical,general,1997,30.6843,57.3025
+E2_mixed,general,1997,35.6534,61.6582
+E3_Qwen,general,1997,33.5082,61.1845

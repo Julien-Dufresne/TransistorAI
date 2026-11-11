@@ -1,0 +1,16 @@
+participant_id,domain,model,full_selections,fractional_selections,grouped_selections
+364fb163a8d84f6aa237ec2ca610b9e7,general,E0,3,3.0,0
+364fb163a8d84f6aa237ec2ca610b9e7,general,E1,2,2.0,0
+364fb163a8d84f6aa237ec2ca610b9e7,general,E2,3,3.0,0
+364fb163a8d84f6aa237ec2ca610b9e7,general,E3,2,2.0,0
+364fb163a8d84f6aa237ec2ca610b9e7,technical,E0,3,3.0,0
+364fb163a8d84f6aa237ec2ca610b9e7,technical,E1,4,3.0,2
+364fb163a8d84f6aa237ec2ca610b9e7,technical,E2,2,1.0,2
+364fb163a8d84f6aa237ec2ca610b9e7,technical,E3,3,3.0,0
+c9c213359e5d473ca8c0dca2e9a16e2c,general,E0,4,4.0,0
+c9c213359e5d473ca8c0dca2e9a16e2c,general,E1,4,4.0,0
+c9c213359e5d473ca8c0dca2e9a16e2c,general,E2,2,2.0,0
+c9c213359e5d473ca8c0dca2e9a16e2c,technical,E0,3,3.0,0
+c9c213359e5d473ca8c0dca2e9a16e2c,technical,E1,3,1.5,3
+c9c213359e5d473ca8c0dca2e9a16e2c,technical,E2,4,2.5,3
+c9c213359e5d473ca8c0dca2e9a16e2c,technical,E3,3,3.0,0

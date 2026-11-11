@@ -1,0 +1,4 @@
+domain,participant_pairs,unique_sentences,exact_agreements,exact_agreement_percent,model_overlap_percent
+overall,20,20,10,50.0,50.0
+general,10,10,6,60.0,60.0
+technical,10,10,4,40.0,40.0

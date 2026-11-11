@@ -1,0 +1,8 @@
+{
+  "model_id": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+  "max_tokens": 384,
+  "temperature": 0,
+  "system_prompt": "You are a professional German-to-English translator. Translate the German text into accurate, natural English. Preserve technical terminology, numbers, placeholders, and negation. Return only the English translation, without explanations.",
+  "original_max_tokens": 128,
+  "output_file": "/Users/juliendufresne/Projects/TransistorAI-fresh/results/day14_llm_baseline/truncation_recovery_384.csv"
+}

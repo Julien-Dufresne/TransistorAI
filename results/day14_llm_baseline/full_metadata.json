@@ -1,0 +1,11 @@
+{
+  "model_id": "mlx-community/Qwen2.5-3B-Instruct-4bit",
+  "source_file": "results/day11_evaluation/e0_generation/predictions.csv",
+  "mode": "full",
+  "temperature": 0,
+  "max_tokens": 128,
+  "system_prompt": "You are a professional German-to-English translator. Translate the German text into accurate, natural English. Preserve technical terminology, numbers, placeholders, and negation. Return only the English translation, without explanations.",
+  "output_file": "results/day14_llm_baseline/predictions.csv",
+  "diagnostic_file": "results/day14_llm_baseline/generation_diagnostics.csv",
+  "pilot_sampling_seed": null
+}
