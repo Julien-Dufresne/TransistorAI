@@ -362,9 +362,27 @@ def render_project_explorer_page():
             "Target percentage": [80, 10, 10],
         })
 
-        st.bar_chart(
-            split_df.set_index("Split"),
-            y_label="Target percentage",
+        split_chart = (
+            alt.Chart(split_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("Split:N", sort=None, title="Dataset split"),
+                y=alt.Y(
+                    "Target percentage:Q",
+                    title="Target percentage",
+                    scale=alt.Scale(domain=[0, 100]),
+                ),
+                tooltip=[
+                    alt.Tooltip("Split:N"),
+                    alt.Tooltip("Target percentage:Q", format=".0f"),
+                ],
+            )
+            .properties(height=280)
+        )
+
+        st.altair_chart(
+            split_chart,
+            use_container_width=True,
         )
 
         st.info(
@@ -390,9 +408,26 @@ def render_project_explorer_page():
             use_container_width=True,
         )
 
-        st.bar_chart(
-            mixed_df.set_index("Domain"),
-            y_label="Training sentence pairs",
+        mixed_chart = (
+            alt.Chart(mixed_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("Domain:N", sort=None, title="Training domain"),
+                y=alt.Y(
+                    "Sentence pairs:Q",
+                    title="Training sentence pairs",
+                ),
+                tooltip=[
+                    alt.Tooltip("Domain:N"),
+                    alt.Tooltip("Sentence pairs:Q", format=","),
+                ],
+            )
+            .properties(height=280)
+        )
+
+        st.altair_chart(
+            mixed_chart,
+            use_container_width=True,
         )
 
         st.caption(
