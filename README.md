@@ -1,119 +1,212 @@
-# TransistorAI 
+# TransistorAI
 
-German-to-English technical-domain machine translation with MarianMT, a Streamlit demo, reproducible dataset preparation, supervised fine-tuning, and baseline comparison.
+**German-to-English Machine Translation — Domain Adaptation, LLM Comparison and Human Evaluation**
 
-## What changed
+TransistorAI is an applied machine learning project comparing pretrained neural machine translation (NMT), domain-adapted NMT, and a quantized large language model (LLM).
 
-- Rebuilt the project from selected source and configuration files, separating generated datasets and model weights from versioned code.
-- Standardized German source and English target columns, including the general-domain preparation script.
-- Corrected the manual inspection script's project-root lookup.
-- Made the baseline select the two held-out test sets explicitly through `configs/project_config.json`; baseline reports use `results/`.
-- Grouped technical splits by German source sentence with seed 42 and added quality filtering and overlap validation.
-- Saved the fine-tuned model, configuration, training history, and aggregate metrics under the configured run directory.
-- Evaluated the fine-tuned model with the baseline's decoding, batch size, and metric implementation, and recorded both domain improvements and regressions.
+The project investigates how fine-tuning affects translation quality across technical and general-language domains, and how automatic evaluation metrics relate to human preferences.
 
-## Results
+## Research Objectives
 
-| Domain | Test pairs | Baseline BLEU | Fine-tuned BLEU | BLEU change | Baseline chrF | Fine-tuned chrF | chrF change |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Technical | 12,623 | 35.1068 | 40.5126 | +5.4058 | 57.9039 | 61.8439 | +3.9400 |
-| General | 1,997 | 40.4083 | 30.6843 | -9.7240 | 65.4857 | 57.3025 | -8.1832 |
+1. Establish a pretrained translation baseline.
+2. Fine-tune MarianMT on technical-domain data.
+3. Compare technical-only and mixed-domain fine-tuning.
+4. Evaluate an LLM translation baseline.
+5. Compare BLEU, chrF and COMET with human preferences.
+6. Deliver an interactive Streamlit MVP.
 
-Technical-domain fine-tuning improved the technical test scores but reduced general-domain quality. These are single-run results; statistical significance and human preference have not been established. Manual inspection files are generated locally; creating samples alone does not establish that a human review is complete.
+## Translation Systems
 
-Training used 101,401 technical pairs and 12,662 validation pairs, three epochs, learning rate 0.00002, batch size 4, gradient accumulation 2, maximum source/target length 128, and seed 42. Recorded runtime was about three hours. The exported model is from the final epoch, rather than an explicitly selected best checkpoint.
+| ID | System | Description |
+|---|---|---|
+| E0 | MarianMT baseline | Pretrained `Helsinki-NLP/opus-mt-de-en` |
+| E1 | Technical fine-tuned | MarianMT trained on technical-domain data |
+| E2 | Mixed fine-tuned | MarianMT trained on mixed-domain data |
+| E3 | LLM baseline | `mlx-community/Qwen2.5-3B-Instruct-4bit` |
 
-The `day8-de-en-v2/technical-finetuned` directory name is retained to match the completed run and saved model location; this branch documents the Days 1–7 workflow.
+E1 and E2 are stored as local model exports. E3 runs through MLX on Apple Silicon.
 
-## Layout
+## Datasets
 
-```text
-configs/              Project, decoding, metrics, training, evaluation settings
-src/                  Dataset preparation, baseline, training, app helpers
-evaluation/           Metrics, validators, comparison, manual sample scripts
-data/README.md        Dataset handling instructions
-results/              Aggregate metrics, reports, and training logs
-MVP_streamlit_app.py  Translation demo
-baseline_translation.py  Initial translation and latency experiment
-```
+| Domain | Training | Validation | Test |
+|---|---:|---:|---:|
+| Technical | 101,401 | 12,662 | 12,623 |
+| General | 25,001 | 2,499 | 1,997 |
 
-Raw/processed corpora, sentence-level predictions and inspection samples, checkpoints, and exported weights are excluded from this branch's snapshot. Earlier Git history may still contain datasets from the original project.
+The frozen Day 8 dataset snapshot is stored under:
 
-## Recreate Days 1–7
+`data/versions/day8-de-en-v2/`
 
-Run commands from the repository root.
+Working datasets are stored under:
 
-### Day 1 — Environment
+`data/processed/`
 
-```bash
-conda create -n transistorai-fresh python=3.11
-conda activate transistorai-fresh
-python -m pip install -r requirements.txt
-```
+These artifacts are not fully tracked by Git. See [Reproducibility Guide](docs/reproducibility.md) for details.
 
-Requirements are unpinned; exact historical dependency versions are not recoverable from this file alone. Record a verified environment with `python -m pip freeze > requirements-lock.txt`.
+## Experimental Results
 
-### Day 2 — Pretrained translation
+The following results were obtained on the full technical and general test sets.
 
-```bash
-python baseline_translation.py
-```
+### Technical Domain
 
-The configured direction is German to English. Some legacy console labels in this initial script still use reversed EN/DE labels.
+| Model | BLEU ↑ | chrF ↑ | COMET ↑ |
+|---|---:|---:|---:|
+| E0 | 35.1068 | 57.9039 | 0.8378 |
+| **E1** | **40.5126** | **61.8439** | **0.8676** |
+| E2 | 39.8935 | 61.4829 | 0.8660 |
+| E3 | 29.1308 | 54.0144 | 0.8113 |
 
-### Day 3 — Streamlit demo
+E1 achieved the strongest results on the technical test set.
+
+### General Domain
+
+| Model | BLEU ↑ | chrF ↑ | COMET ↑ |
+|---|---:|---:|---:|
+| **E0** | **40.4083** | **65.4857** | **0.8668** |
+| E1 | 30.6843 | 57.3025 | 0.8266 |
+| E2 | 35.6534 | 61.6582 | 0.8493 |
+| E3 | 33.5082 | 61.1845 | 0.8584 |
+
+E0 achieved the strongest results on the general test set.
+
+### Main Findings
+
+- Technical-only fine-tuning improved technical translation quality.
+- Technical-only fine-tuning reduced general-domain performance.
+- Mixed-domain fine-tuning provided a compromise between specialization and general-language retention.
+- The quantized LLM baseline did not outperform the pretrained NMT baseline on these full test sets.
+- Translation quality depends on domain, training data and evaluation methodology.
+
+## Human Preference Evaluation
+
+A human evaluation interface was developed to compare translations from E0, E1, E2 and E3.
+
+The evaluation dataset contains 200 German sentences:
+
+- 100 technical sentences
+- 100 general-domain sentences
+
+Reviewers can compare alternative translations and select their preferred output.
+
+Selections are stored in SQLite for subsequent analysis.
+
+### Pilot Results
+
+The Day 17 pilot contained:
+
+- 25 human preference votes
+- 21 unique evaluated sentences
+
+Strict agreement between human selections and automatic metric rankings:
+
+| Metric | Agreement |
+|---|---:|
+| BLEU | 36% |
+| chrF | 28% |
+| COMET | 36% |
+
+These are preliminary pilot results. The sample size is insufficient for broad conclusions about metric reliability.
+
+## Streamlit MVP
+
+The interactive application includes:
+
+- German-to-English translation
+- Model selection
+- Translation practice activities
+- Vocabulary learning
+- Human preference collection
+- Human evaluation analytics
+- Project exploration and evaluation results
+
+### Launch
 
 ```bash
 python -m streamlit run MVP_streamlit_app.py
 ```
 
-### Day 4 — Data preparation
+The application normally opens at `http://localhost:8501`.
 
-Obtain aligned OPUS KDE4 v2 and WMT19 newstest2019 text files, observing their source licenses and citation requirements. Place files at:
+Local model files and cached model dependencies must be available for the relevant translation systems.
+
+## Installation
+
+The verified development environment uses Python 3.11.18 on Apple Silicon macOS.
+
+Install dependencies using:
+
+```bash
+python -m pip install -r requirements-lock.txt
+```
+
+Alternatively, `requirements.txt` contains the project's general dependency requirements.
+
+The lockfile records the local development environment and may require adaptation on other hardware or operating systems.
+
+For dataset restoration, model locations, environment details and reproducibility limitations, see:
+
+**[docs/reproducibility.md](docs/reproducibility.md)**
+
+## Validation and Testing
+
+Check dataset integrity:
+
+```bash
+python src/check_e2_datasets.py
+```
+
+Run the translation smoke tests:
+
+```bash
+python evaluation/day18_translation_smoke.py
+```
+
+The latest reported Day 18 smoke-test execution passed **20/20 checks**.
+
+Smoke tests verify execution behavior; they do not establish semantic translation accuracy.
+
+Translation quality was evaluated separately using BLEU, chrF, COMET, terminology checks, qualitative error analysis and human preferences.
+
+## Repository Structure
 
 ```text
-data/raw/technical/de-en/KDE4.de-en.de
-data/raw/technical/de-en/KDE4.de-en.en
-data/raw/general/de-en/newstest2019.de
-data/raw/general/de-en/newstest2019.en
+TransistorAI-fresh/
+├── MVP_streamlit_app.py
+├── data/
+│   ├── processed/
+│   ├── versions/
+│   └── human_evaluation/
+├── docs/
+│   └── reproducibility.md
+├── evaluation/
+├── results/
+├── src/
+├── requirements.txt
+├── requirements-lock.txt
+└── README.md
 ```
 
-Record source versions, download provenance, licenses, and checksums locally before preparing data. The preparation scripts do not download these corpora.
+The repository also contains experiment reports, evaluation scripts and additional Streamlit pages.
 
-```bash
-python -m src.prepare_dataset
-python -m src.prepare_general_test
-python -m evaluation.validate_datasets
-python -m evaluation.dataset_statistics
-python evaluation/manual/manual_dataset_inspection.py
-```
+## Limitations
 
-Review `evaluation/manual_dataset_inspection.csv`. Validation checks nulls, empty text, exact pair duplicates, and exact source overlap; it does not establish translation correctness or absence of near-duplicates. Keep test splits fixed and out of training and checkpoint selection.
+- Fine-tuned model weights and frozen datasets are not fully distributed through Git.
+- Some evaluation workflows require downloaded or cached models.
+- MLX-based LLM inference is hardware-dependent.
+- Human preference results currently represent a small pilot.
+- BLEU, chrF and COMET cannot capture every aspect of translation quality.
+- Exact-pair dataset overlap checks do not rule out all possible data leakage.
 
-### Day 5 — Baseline
+## Conclusion
 
-```bash
-python -m src.benchmark && python -m evaluation.generate_baseline_report
-```
+TransistorAI demonstrates that domain adaptation can improve specialized translation quality while introducing trade-offs in general-domain performance.
 
-### Day 6 — Fine-tuning
+The project combines neural machine translation, an LLM baseline, automatic metrics, qualitative analysis, human evaluation and an interactive MVP.
 
-```bash
-python -m src.train
-```
+The results support a domain-aware approach to translation model selection rather than assuming that one model is optimal for every use case.
 
-The current configuration exports the model to `results/day8-de-en-v2/technical-finetuned/final_model` and checkpoints to `models/checkpoints/de-en`.
+## Historical Documentation
 
-### Day 7 — Evaluation
+The original Days 1–7 setup instructions are preserved in:
 
-```bash
-python -m evaluation.evaluate_finetuned && python -m evaluation.compare_models
-python -m evaluation.manual_day7_inspection
-```
-
-Review `results/day7_comparison.csv`, both Day 7 reports, and the locally generated manual inspection sample. Rerunning report commands overwrites generated reports.
-
-
-python -m streamlit run MVP_streamlit_app.py 
-or 
-fn + F5 to launch the app, Shift + fn +F5 to close the app (or CTRL + C)
+[docs/README_days1-7_legacy.md](docs/README_days1-7_legacy.md)
