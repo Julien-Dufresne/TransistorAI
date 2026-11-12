@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 import sacrebleu
 import altair as alt
-
+import json
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
@@ -19,16 +19,707 @@ def render_project_explorer_page():
         evaluation and human preferences.
         """
     )
+    (
+        structure_tab, training_tab, metrics_tab, data_tab, models_tab, experiments_tab, ) = st.tabs([
+            "🏗️ Project Structure",
+            "🏋️ Training Pipeline",
+            "📊 Evaluation Metrics",
+            "🗂️ Data & Cleaning",
+            "🧠 Models",
+            "🔬 Experiments & Results",
+        ])
 
-    metrics_tab, data_tab, models_tab, experiments_tab = st.tabs([
-        "📊 Evaluation Metrics",
-        "🗂️ Data & Cleaning",
-        "🧠 Models",
-        "🔬 Experiments & Results",
-    ])
+
+
+    # ============================================================
+    # TAB — PROJECT STRUCTURE
+    # ============================================================
+    
+    with structure_tab:
+        st.header("📁 Project Structure")
+        st.markdown(
+            "TransistorAI is organized into independent components "
+            "for dataset preparation, model development, evaluation "
+            "and presentation."
+        )
+
+        # ----------------------------------------------------
+        # SECTION 1 — REPOSITORY ORGANIZATION
+        # ----------------------------------------------------
+        st.subheader("Repository Organization")
+
+        folders = [
+            (
+                "⚙️ configs/",
+                "Experiment Configuration",
+                "JSON files defining model selection, datasets, "
+                "hyperparameters and experiment output paths."
+            ),
+            (
+                "🗂️ data/",
+                "Dataset Management",
+                "German–English datasets, processed splits, "
+                "training examples and human preference data."
+            ),
+            (
+                "📝 docs/",
+                "Documentation",
+                "Project plans, methodology, experiment reports "
+                "and presentation materials."
+            ),
+            (
+                "📊 evaluation/",
+                "Evaluation",
+                "Scripts for BLEU, chrF, COMET, terminology checks, "
+                "error analysis and human preference comparisons."
+            ),
+            (
+                "🧠 models/",
+                "Model Storage",
+                "Locally stored MarianMT checkpoints and "
+                "other model artifacts."
+            ),
+            (
+                "📈 results/",
+                "Experimental Results",
+                "Training outputs, translation quality scores, "
+                "model comparisons and analysis results."
+            ),
+            (
+                "🧩 src/",
+                "Reusable Functions",
+                "Shared Python utilities for dataset loading, "
+                "tokenization and truncation analysis."
+            ),
+        ]
+
+        columns = st.columns(4, gap="small")
+
+        # First row: 4 cards
+        first_row = st.columns(4, gap="small")
+
+        for index, (folder, title, description) in enumerate(folders[:4]):
+            with first_row[index]:
+                with st.container(border=True):
+                    st.markdown(
+                        f"""
+                        <h3 style="text-align: center; font-size: 22px; margin-bottom: 12px;">
+                            {folder}
+                        </h3>
+                        <p style="text-align: center; font-size: 14px; color: #A0A0A0;">
+                            {title}
+                        </p>
+                        <p style="text-align: center; font-size: 15px; line-height: 1.6;">
+                            {description}
+                        </p>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+        # Second row: 3 centered cards
+        spacer_left, col1, col2, col3, spacer_right = st.columns(
+            [0.5, 1, 1, 1, 0.5],
+            gap="small"
+        )
+
+        for column, (folder, title, description) in zip(
+            [col1, col2, col3],
+            folders[4:]
+        ):
+            with column:
+                with st.container(border=True):
+                    st.markdown(
+                        f"""
+                        <h3 style="text-align: center; font-size: 22px; margin-bottom: 12px;">
+                            {folder}
+                        </h3>
+                        <p style="text-align: center; font-size: 14px; color: #A0A0A0;">
+                            {title}
+                        </p>
+                        <p style="text-align: center; font-size: 15px; line-height: 1.6;">
+                            {description}
+                        </p>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+        st.divider()
+
+        # ----------------------------------------------------
+        # SECTION 2 — KEY PYTHON FILES
+        # ----------------------------------------------------
+        st.subheader("Key Python Files")
+
+
+        python_files = [
+            (
+                "train.py",
+                "Model Training",
+                """
+                **Purpose:** Main entry point for fine-tuning the
+                MarianMT translation models (E1 and E2).
+
+                **Main responsibilities:**
+                - Reads experiment settings from a JSON configuration.
+                - Validates dataset and output paths.
+                - Loads the pretrained model and tokenizer.
+                - Loads and tokenizes training and validation datasets.
+                - Checks token truncation and prepares padded batches.
+                - Configures the Hugging Face Seq2SeqTrainer.
+                - Runs training and saves checkpoints, metrics and
+                  the final trained model.
+
+                **Project role:** Converts prepared translation data
+                into fine-tuned German-to-English translation models.
+                """
+            ),
+            (
+                "src/training_utils.py",
+                "Training Utilities",
+                """
+                **Purpose:** Provides reusable functions for the
+                training pipeline.
+
+                **Functions used by train.py:**
+                - `load_translation_dataset()` — loads translation data.
+                - `tokenize_dataset()` — prepares tokenized examples.
+                - `truncation_report()` — reports potential truncation
+                  at configured sequence lengths.
+
+                **Project role:** Keeps reusable data-processing
+                operations separate from the main training script.
+                """
+            ),
+            (
+                "MVP_streamlit_app.py",
+                "Streamlit Application",
+                """
+                **Purpose:** Main entry point for the interactive
+                TransistorAI web application.
+
+                **Main responsibilities:**
+                - Provides the German-to-English translation interface.
+                - Lets users interact with available translation models.
+                - Includes translation practice and evaluation features.
+                - Integrates the Project Explorer.
+
+                **Project role:** Makes the translation systems
+                accessible through a user-friendly web interface.
+                """
+            ),
+            (
+                "project_explorer_page.py",
+                "Project Documentation and Visualization",
+                """
+                **Purpose:** Explains the development and evaluation
+                of TransistorAI through an interactive Streamlit page.
+
+                **Main responsibilities:**
+                - Explains repository organization and training.
+                - Introduces BLEU, chrF and COMET.
+                - Documents datasets and data preparation.
+                - Compares E0, E1, E2 and E3.
+                - Visualizes experiment results and human evaluation.
+
+                **Project role:** Connects the technical implementation
+                with the research findings and final presentation.
+                """
+            ),
+        ]
+
+        for filename, subtitle, explanation in python_files:
+            with st.expander(f"📄 {filename} — {subtitle}"):
+                st.markdown(explanation)
+
+
+        st.divider()
+
+        # ----------------------------------------------------
+        # SECTION 3 — PROJECT WORKFLOW
+        # ----------------------------------------------------
+        st.subheader("How the Components Work Together")
+
+        st.graphviz_chart("""
+        digraph {
+            rankdir=LR;
+            graph [bgcolor="transparent", pad="0.2"];
+            node [
+                shape=box,
+                style="rounded,filled",
+                fillcolor="#243244",
+                fontcolor="white",
+                color="#536477",
+                margin="0.18,0.12"
+            ];
+            edge [color="#8B9CAD"];
+
+            Configs [label="configs/"];
+            Data [label="data/"];
+            Utils [label="src/"];
+            Train [label="train.py"];
+            Models [label="models/"];
+            Eval [label="evaluation/"];
+            Results [label="results/"];
+            App [label="Streamlit MVP"];
+
+            Configs -> Train;
+            Data -> Utils;
+            Utils -> Train;
+            Train -> Models;
+            Models -> Eval;
+            Data -> Eval;
+            Eval -> Results;
+            Models -> App;
+            Results -> App;
+        }
+        """, use_container_width=True)
+
+        st.caption(
+            "The workflow separates experiment configuration, "
+            "data processing, training and evaluation. "
+            "The Streamlit application brings the models and "
+            "results together for interactive exploration."
+        )
+
+
+    # ============================================================
+    # TAB 1 — TRAINING PIPELINE
+    # ============================================================
+    with training_tab:
+        st.header("⚙️ Training Pipeline — train.py")
+
+        st.markdown("""
+        `train.py` is the main training entry point for the
+        MarianMT fine-tuning experiments E1 and E2.
+
+        It uses:
+        - **Hugging Face Transformers** for model training.
+        - **PyTorch** as the underlying deep learning framework.
+        - **src/training_utils.py** for reusable data operations.
+        - **JSON configuration files** for experiment settings.
+        """)
+
+        
+        steps = [
+            {
+                "title": "1. Load and validate configuration",
+                "purpose": "Select the correct training experiment.",
+                "explanation": """
+                The script requires a JSON configuration file through
+                the `--config` command-line argument.
+
+                It checks that the configuration and datasets exist,
+                and prevents accidental overwriting of completed
+                experiments or existing checkpoints.
+
+                This is especially important because E1 and E2
+                use different training datasets.
+                """,
+                "code": '''args = parse_arguments()
+
+with args.config.open("r", encoding="utf-8") as file:
+    config = json.load(file)
+
+train_path = Path(config["train_path"])
+validation_path = Path(config["validation_path"])
+checkpoint_dir = Path(config["output_dir"])
+run_dir = Path(config["run_dir"])''',
+                "why": "Protects experiments and makes training configurable."
+            },
+            {
+                "title": "2. Set random seed",
+                "purpose": "Improve experiment reproducibility.",
+                "explanation": """
+                A random seed controls supported sources of
+                randomness used during model training.
+
+                Using the same seed helps make comparisons between
+                experiments more consistent, although it does not
+                guarantee identical results on every device.
+                """,
+                "code": '''set_seed(config["seed"])''',
+                "why": "Reduces variation caused by random initialization and sampling."
+            },
+            {
+                "title": "3. Load pretrained model and tokenizer",
+                "purpose": "Start from an existing translation model.",
+                "explanation": """
+                The tokenizer converts text into tokens that the
+                neural network can process.
+
+                The pretrained sequence-to-sequence model provides
+                existing translation capabilities that can be
+                adapted through fine-tuning.
+
+                For E1 and E2, the configured base model is MarianMT.
+                """,
+                "code": '''model_id = config["model_id"]
+
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_id)''',
+                "why": "Fine-tuning reuses pretrained language knowledge instead of training from scratch."
+            },
+            {
+                "title": "4. Load training and validation datasets",
+                "purpose": "Prepare the German–English translation examples.",
+                "explanation": """
+                The script loads two datasets:
+
+                - **Training:** Used to update model parameters.
+                - **Validation:** Used to monitor model performance
+                  during training.
+
+                The loading operation is delegated to
+                `src/training_utils.py`.
+                """,
+                "code": '''train_dataset = load_translation_dataset(
+    config["train_path"],
+    config["source_column"],
+    config["target_column"],
+)
+
+validation_dataset = load_translation_dataset(
+    config["validation_path"],
+    config["source_column"],
+    config["target_column"],
+)''',
+                "why": "Separates the examples used for learning from those used for validation."
+            },
+            {
+                "title": "5. Analyze token truncation",
+                "purpose": "Check whether sentences exceed model input limits.",
+                "explanation": """
+                Translation examples can contain more tokens than
+                the configured maximum sequence length.
+
+                The script checks potential truncation separately
+                for German source sentences and English targets,
+                in both training and validation datasets.
+
+                This helps identify whether important information
+                could be lost during tokenization.
+                """,
+                "code": '''report = truncation_report(
+    dataset,
+    tokenizer,
+    column,
+    max_length,
+)
+
+print(f"{split_name}/{column}: {report}")''',
+                "why": "Makes possible information loss visible before training."
+            },
+            {
+                "title": "6. Tokenize the datasets",
+                "purpose": "Convert text into numerical model inputs.",
+                "explanation": """
+                Neural networks do not directly process text strings.
+
+                Tokenization transforms the German source and English
+                target sentences into token representations.
+
+                Your reusable `tokenize_dataset()` function applies
+                the tokenizer and configured source/target lengths.
+                """,
+                "code": '''tokenized_train = tokenize_dataset(
+    train_dataset,
+    tokenizer,
+    config["max_source_length"],
+    config["max_target_length"],
+    config["source_column"],
+    config["target_column"],
+)''',
+                "why": "Produces the numerical examples required by MarianMT."
+            },
+            {
+                "title": "7. Configure dynamic padding",
+                "purpose": "Create batches with compatible sequence lengths.",
+                "explanation": """
+                Sentences contain different numbers of tokens.
+
+                Dynamic padding extends shorter sequences to the
+                length required by the current batch.
+
+                This can avoid unnecessary padding compared with
+                padding every example to a fixed global length.
+                """,
+                "code": '''data_collator = DataCollatorForSeq2Seq(
+    tokenizer=tokenizer,
+    model=model,
+    padding=True,
+)''',
+                "why": "Makes variable-length examples usable in batches."
+            },
+            {
+                "title": "8. Inspect a sample batch",
+                "purpose": "Check the structure of the training tensors.",
+                "explanation": """
+                Before training, the script creates a small batch
+                from the tokenized training dataset.
+
+                It prints the shape of each tensor, allowing you
+                to inspect the dimensions of the model inputs
+                and target labels.
+
+                The script also stops if the training dataset
+                is empty.
+                """,
+                "code": '''sample_count = min(
+    config["per_device_train_batch_size"],
+    len(tokenized_train),
+)
+
+if sample_count == 0:
+    raise ValueError("Training dataset is empty.")
+
+sample_batch = data_collator([
+    tokenized_train[i] for i in range(sample_count)
+])
+
+for name, tensor in sample_batch.items():
+    print(f"{name}: {tuple(tensor.shape)}")''',
+                "why": "Helps detect data preparation problems before expensive training."
+            },
+            {
+                "title": "9. Define training hyperparameters",
+                "purpose": "Control how the model learns.",
+                "explanation": """
+                `Seq2SeqTrainingArguments` defines the training
+                process using values from the JSON configuration.
+
+                Important settings include:
+
+                - **Learning rate:** Size of optimizer updates.
+                - **Batch size:** Examples processed per device batch.
+                - **Gradient accumulation:** Number of batches
+                  accumulated before an optimizer update.
+                - **Epochs:** Passes through the training dataset.
+                - **Evaluation strategy:** When validation runs.
+                - **Save strategy:** When checkpoints are saved.
+                """,
+                "code": '''training_args = Seq2SeqTrainingArguments(
+    output_dir=config["output_dir"],
+    learning_rate=config["learning_rate"],
+    optim=config["optimizer"],
+    per_device_train_batch_size=config[
+        "per_device_train_batch_size"
+    ],
+    gradient_accumulation_steps=config[
+        "gradient_accumulation_steps"
+    ],
+    num_train_epochs=config["num_train_epochs"],
+    eval_strategy=config["eval_strategy"],
+    save_strategy=config["save_strategy"],
+    seed=config["seed"],
+)''',
+                "why": "Defines the optimization and checkpointing behavior."
+            },
+            {
+                "title": "10. Initialize Hugging Face Trainer",
+                "purpose": "Connect the model, datasets and training settings.",
+                "explanation": """
+                `Seq2SeqTrainer` manages the training loop.
+
+                It receives the model, training arguments,
+                tokenized datasets, tokenizer and data collator.
+
+                The trainer handles operations such as forward
+                passes, gradient calculation, optimizer updates
+                and configured validation.
+                """,
+                "code": '''trainer = Seq2SeqTrainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_train,
+    eval_dataset=tokenized_validation,
+    processing_class=tokenizer,
+    data_collator=data_collator,
+)''',
+                "why": "Provides a standardized training workflow."
+            },
+            {
+                "title": "11. Save experiment configuration",
+                "purpose": "Record the settings used for training.",
+                "explanation": """
+                Before training starts, the script saves a copy
+                of the selected JSON configuration in the
+                checkpoint directory.
+
+                This makes it easier to identify the parameters
+                associated with a training run.
+                """,
+                "code": '''output_dir = Path(config["output_dir"])
+output_dir.mkdir(parents=True, exist_ok=True)
+
+with open(output_dir / "training_config.json", "w") as file:
+    json.dump(config, file, indent=2)''',
+                "why": "Supports experiment tracking and reproducibility."
+            },
+            {
+                "title": "12. Train and export the model",
+                "purpose": "Run fine-tuning and preserve the outputs.",
+                "explanation": """
+                `trainer.train()` starts fine-tuning.
+
+                After training completes, the script saves:
+
+                - The final model and tokenizer.
+                - The selected training configuration.
+                - Training history.
+                - Aggregate training metrics.
+                - Trainer metrics and state.
+
+                These artifacts support later evaluation,
+                comparison and model reuse.
+                """,
+                "code": '''train_result = trainer.train()
+
+run_dir = Path(config["run_dir"])
+run_dir.mkdir(parents=True, exist_ok=True)
+
+model_dir = run_dir / "final_model"
+trainer.save_model(str(model_dir))
+tokenizer.save_pretrained(str(model_dir))
+
+with (run_dir / "training_history.json").open(
+    "w", encoding="utf-8"
+) as file:
+    json.dump(trainer.state.log_history, file, indent=2)
+
+with (run_dir / "train_metrics.json").open(
+    "w", encoding="utf-8"
+) as file:
+    json.dump(train_result.metrics, file, indent=2)''',
+                "why": "Creates the trained model and records its training results."
+            },
+        ]
+
+        st.subheader("Training Workflow")
+
+        st.graphviz_chart("""
+        digraph {
+            rankdir=LR;
+            graph [bgcolor="transparent"];
+            node [
+                shape=box,
+                style="rounded,filled",
+                fillcolor="#243244",
+                fontcolor="white",
+                color="#536477"
+            ];
+            edge [color="#8B9CAD"];
+
+            Config [label="JSON Config"];
+            Data [label="Datasets"];
+            Token [label="Tokenization"];
+            Train [label="Fine-tuning"];
+            Save [label="Saved Model"];
+            Eval [label="Evaluation"];
+
+            Config -> Train;
+            Data -> Token;
+            Token -> Train;
+            Train -> Save;
+            Save -> Eval;
+        }
+        """, use_container_width=True)
+
+
+        st.caption(
+            "Select a step to understand its purpose, "
+            "implementation and importance."
+        )
+
+        for step in steps:
+            with st.expander(step["title"]):
+                st.markdown(f"**Objective:** {step['purpose']}")
+                st.markdown(step["explanation"])
+
+                st.markdown("**Relevant Python code**")
+                st.code(step["code"], language="python")
+
+                st.info(f"Why it matters: {step['why']}")
+
+
+        st.subheader("Training Workflow")
+
+        for step in steps:
+            with st.expander(step["title"]):
+                st.markdown(f"**Objective:** {step['purpose']}")
+                st.markdown(step["explanation"])
+
+                st.markdown("**Relevant Python code**")
+                st.code(step["code"], language="python")
+
+                st.info(f"Why it matters: {step['why']}")
+
+        st.divider()
+        st.subheader("Training Configuration")
+
+        st.markdown(
+            "The training script reads parameters from the "
+            "selected JSON file rather than hardcoding them."
+        )
+
+        config_files = sorted(
+            (PROJECT_ROOT / "configs").glob("*.json")
+        ) if (PROJECT_ROOT / "configs").exists() else []
+
+        if config_files:
+            selected_config = st.selectbox(
+                "Inspect a training configuration",
+                config_files,
+                format_func=lambda path: path.name,
+                key="explorer_training_config",
+            )
+
+            try:
+                with selected_config.open(encoding="utf-8") as f:
+                    selected_settings = json.load(f)
+                st.json(selected_settings)
+            except (OSError, ValueError) as exc:
+                st.error(f"Cannot read configuration: {exc}")
+        else:
+            st.info("No JSON configuration files found in configs/.")
+
+        st.divider()
+        st.subheader("Training Script Source Code")
+
+        train_file = PROJECT_ROOT / "src" / "train.py"
+
+        if train_file.is_file():
+            with st.expander("View complete train.py"):
+                st.code(
+                    train_file.read_text(encoding="utf-8"),
+                    language="python",
+                )
+        else:
+            st.warning("train.py was not found in the project root.")
+
+        st.divider()
+        st.subheader("Saved Training Artifacts")
+
+        st.markdown("""
+        After successful training, the script saves:
+
+        - `final_model/` — exported model and tokenizer.
+        - `training_config.json` — experiment configuration.
+        - `training_history.json` — logged training history.
+        - `train_metrics.json` — aggregate training metrics.
+
+        Checkpoints and trainer state are saved under the
+        configured output directory.
+        """)
+
+        st.caption(
+            "The precise parameter values depend on the "
+            "JSON configuration selected for each experiment."
+        )
+
+
 
 # ============================================================
-# Tab 1 — Evaluation Metrics
+# Tab 2 — Evaluation Metrics
 # ============================================================
     with metrics_tab:
         st.header("📊 Translation Evaluation Metrics")
@@ -199,7 +890,7 @@ def render_project_explorer_page():
             directly compared numerically with BLEU or chrF.
             """)
 # ============================================================
-# TAB 2 — DATASETS AND DATA PREPARATION
+# TAB 3 — DATASETS AND DATA PREPARATION
 # ============================================================
     with data_tab:
         st.header("🗂️ Datasets and Data Preparation")

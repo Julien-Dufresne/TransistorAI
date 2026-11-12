@@ -100,12 +100,13 @@ def main():
 
     # STEP 2 — Set random seeds for reproducibility.
     set_seed(config["seed"])
-
+    # ===========================================================================
     # STEP 3 — Load the pretrained tokenizer and model.
     model_id = config["model_id"]
 
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
+    # ===========================================================================
 
     # STEP 4 — Load training and validation data.
     train_dataset = load_translation_dataset(

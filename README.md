@@ -210,3 +210,8 @@ The results support a domain-aware approach to translation model selection rathe
 The original Days 1–7 setup instructions are preserved in:
 
 [docs/README_days1-7_legacy.md](docs/README_days1-7_legacy.md)
+
+
+python -m streamlit run MVP_streamlit_app.py 
+or 
+fn + F5 to launch the app, Shift + fn +F5 to close the app (or CTRL + C)
