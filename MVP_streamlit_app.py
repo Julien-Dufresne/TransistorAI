@@ -295,49 +295,131 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+
 # ============================================================
-# USER SELECTION — APPLICATION ENTRY POINT
+# APPLICATION NAVIGATION
 # ============================================================
 
-active_user = render_user_selection()
+if "app_section" not in st.session_state:
+    st.session_state.app_section = "welcome"
 
-if active_user is None:
-    # Do not display the main application until a user is selected.
+section = st.session_state.app_section
+
+if section == "welcome":
+    st.title("🌍 Welcome to TransistorAI")
+
+    st.markdown(
+        "Explore the research behind TransistorAI or interact "
+        "with our German-to-English translation systems."
+    )
+
+    analytics_col, interaction_col = st.columns(2, gap="large")
+
+    with analytics_col:
+        with st.container(border=True):
+            st.subheader("📊 TransistorAnalytics")
+            st.write(
+                "Discover the project architecture, datasets, "
+                "training process, model comparisons and "
+                "human evaluation results."
+            )
+
+            if st.button(
+                "Open TransistorAnalytics",
+                use_container_width=True,
+                type="primary",
+            ):
+                st.session_state.app_section = "analytics"
+                st.rerun()
+
+    with interaction_col:
+        with st.container(border=True):
+            st.subheader("🌍 TransistorInteraction")
+            st.write(
+                "Translate text, practice German-to-English "
+                "translation, learn vocabulary and participate "
+                "in human preference evaluation."
+            )
+
+            if st.button(
+                "Open TransistorInteraction",
+                use_container_width=True,
+                type="primary",
+            ):
+                st.session_state.app_section = "interaction"
+                st.rerun()
+
     st.stop()
 
-active_user_id = active_user["user_id"]
-active_username = active_user["username"]
 
-render_active_user_sidebar()
+# Shared navigation
+with st.sidebar:
+    st.markdown("### 🌍 TransistorAI")
 
+    if st.button("🏠 Home", use_container_width=True):
+        st.session_state.app_section = "welcome"
+        st.rerun()
 
-st.title("🌍 TransistorAI")
+    if st.button("📊 Analytics", use_container_width=True):
+        st.session_state.app_section = "analytics"
+        st.rerun()
 
-# STEP 6A — Create the five main application tabs.
-# Each tab provides an independent TransistorAI feature.
+    if st.button("🌍 Interaction", use_container_width=True):
+        st.session_state.app_section = "interaction"
+        st.rerun()
 
-(
-    project_explorer_tab,
-    translate_tab,
-    practice_tab,
-    vocabulary_tab,
-    preference_tab,
-    human_analytics_tab,
-) = st.tabs([
-    "📖 Project Explorer",
-    "🌍 Translate",
-    "🎓 Test Yourself",
-    "📚 Daily Vocabulary",
-    "🏆 Human Preference Evaluation",
-    "📊 Human Evaluation Analytics",
-])
 
 # ============================================================
-# TAB 1 — PROJECT EXPLORER
+# TRANSISTOR ANALYTICS
 # ============================================================
 
-with project_explorer_tab:
-    render_project_explorer_page()
+if section == "analytics":
+    st.title("📊 TransistorAnalytics")
+
+    project_explorer_tab, human_analytics_tab = st.tabs([
+        "📖 Project Explorer",
+        "📊 Human Evaluation Analytics",
+    ])
+
+    with project_explorer_tab:
+        render_project_explorer_page()
+
+    with human_analytics_tab:
+        render_human_analytics_page()
+
+    st.stop()
+
+
+# ============================================================
+# TRANSISTOR INTERACTION
+# ============================================================
+
+if section == "interaction":
+    active_user = render_user_selection()
+
+    if active_user is None:
+        st.stop()
+
+    active_user_id = active_user["user_id"]
+    active_username = active_user["username"]
+
+    render_active_user_sidebar()
+
+    st.title("🌍 TransistorInteraction")
+
+    (
+        translate_tab,
+        practice_tab,
+        vocabulary_tab,
+        preference_tab,
+    ) = st.tabs([
+        "🌍 Translate",
+        "🎓 Test Yourself",
+        "📚 Daily Vocabulary",
+        "🏆 Human Preference Evaluation",
+    ])
+
+
 
 
 # ============================================================
@@ -345,147 +427,147 @@ with project_explorer_tab:
 # ============================================================
 
 
-with translate_tab:
+    with translate_tab:
 
-    st.subheader("German → English Translation")
+        st.subheader("German → English Translation")
 
-    source_text = st.text_area(
-        "Enter German text:",
-        placeholder="Enter your German text here...",
-        height=120,
-        key="translation_source",
-    )
-
-    comparison_mode = st.radio(
-        "Translation mode",
-        ["Single model", "Compare all models"],
-        horizontal=True,
-    )
-
-    model_labels = {
-        key: f"{key} — {config['name']}"
-        for key, config in TRANSLATION_MODELS.items()
-    }
-
-    selected_model = None
-
-    if comparison_mode == "Single model":
-        selected_model = st.selectbox(
-            "Choose translation model",
-            options=list(TRANSLATION_MODELS.keys()),
-            format_func=lambda key: model_labels[key],
+        source_text = st.text_area(
+            "Enter German text:",
+            placeholder="Enter your German text here...",
+            height=120,
+            key="translation_source",
         )
 
-    if st.button("Translate", type="primary", key="translate_models"):
-
-        if not source_text.strip():
-            st.warning("Please enter some German text.")
-
-        else:
-            models_to_run = (
-                [selected_model]
-                if comparison_mode == "Single model"
-                else list(TRANSLATION_MODELS.keys())
-            )
-
-            results = []
-            errors = []
-
-            for model_key in models_to_run:
-                with st.spinner(
-                    f"Generating translation with {model_labels[model_key]}..."
-                ):
-                    try:
-                        result = translate_with_model(
-                            source_text,
-                            model_key,
-                        )
-
-                        results.append(result)
-
-                        log_translation(
-                            source=source_text,
-                            translation=result["translation"],
-                            model_id=TRANSLATION_MODELS[model_key]["path"],
-                            language_pair=LANGUAGE_PAIR,
-                            latency_ms=result["latency_ms"],
-                        )
-
-                    except Exception as exc:
-                        errors.append(
-                            f"{model_labels[model_key]}: {exc}"
-                        )
-
-            st.session_state["translation_results"] = results
-            st.session_state["translation_errors"] = errors
-            st.session_state["translation_input"] = source_text
-
-    results = st.session_state.get("translation_results", [])
-    errors = st.session_state.get("translation_errors", [])
-
-    if results:
-
-        st.success(
-            f"Generated {len(results)} translation(s) successfully."
+        comparison_mode = st.radio(
+            "Translation mode",
+            ["Single model", "Compare all models"],
+            horizontal=True,
         )
 
-        st.markdown("### German source")
-        st.write(st.session_state["translation_input"])
+        model_labels = {
+            key: f"{key} — {config['name']}"
+            for key, config in TRANSLATION_MODELS.items()
+        }
 
-        st.markdown("### English translations")
+        selected_model = None
 
-        translation_columns = st.columns(
-            4,
-            gap="medium",
-        )
-
-        for index, result in enumerate(results):
-
-            with translation_columns[index % 4]:
-
-                with st.container(border=True):
-
-                    st.markdown(
-                        f"#### {result['model']} — {result['name']}"
-                    )
-
-                    st.write(result["translation"])
-
-                    st.caption(
-                        f"Latency: {result['latency_ms']:.2f} ms"
-                    )
-
-
-        if len(results) > 1:
-
-            st.markdown("### Model comparison")
-
-            comparison_df = pd.DataFrame(
-                [
-                    {
-                        "Model": f"{r['model']} — {r['name']}",
-                        "Translation": r["translation"],
-                        "Latency (ms)": round(r["latency_ms"], 2),
-                    }
-                    for r in results
-                ]
+        if comparison_mode == "Single model":
+            selected_model = st.selectbox(
+                "Choose translation model",
+                options=list(TRANSLATION_MODELS.keys()),
+                format_func=lambda key: model_labels[key],
             )
 
-            st.dataframe(
-                comparison_df,
-                hide_index=True,
-                use_container_width=True,
+        if st.button("Translate", type="primary", key="translate_models"):
+
+            if not source_text.strip():
+                st.warning("Please enter some German text.")
+
+            else:
+                models_to_run = (
+                    [selected_model]
+                    if comparison_mode == "Single model"
+                    else list(TRANSLATION_MODELS.keys())
+                )
+
+                results = []
+                errors = []
+
+                for model_key in models_to_run:
+                    with st.spinner(
+                        f"Generating translation with {model_labels[model_key]}..."
+                    ):
+                        try:
+                            result = translate_with_model(
+                                source_text,
+                                model_key,
+                            )
+
+                            results.append(result)
+
+                            log_translation(
+                                source=source_text,
+                                translation=result["translation"],
+                                model_id=TRANSLATION_MODELS[model_key]["path"],
+                                language_pair=LANGUAGE_PAIR,
+                                latency_ms=result["latency_ms"],
+                            )
+
+                        except Exception as exc:
+                            errors.append(
+                                f"{model_labels[model_key]}: {exc}"
+                            )
+
+                st.session_state["translation_results"] = results
+                st.session_state["translation_errors"] = errors
+                st.session_state["translation_input"] = source_text
+
+        results = st.session_state.get("translation_results", [])
+        errors = st.session_state.get("translation_errors", [])
+
+        if results:
+
+            st.success(
+                f"Generated {len(results)} translation(s) successfully."
             )
 
-        with st.expander("Decoding configuration"):
-            st.json(DECODING_CONFIG)
-            st.caption(
-                "These decoding settings apply to the NMT models. "
-                "Qwen uses separate MLX generation settings."
+            st.markdown("### German source")
+            st.write(st.session_state["translation_input"])
+
+            st.markdown("### English translations")
+
+            translation_columns = st.columns(
+                4,
+                gap="medium",
             )
 
-    for error in errors:
-        st.error(error)
+            for index, result in enumerate(results):
+
+                with translation_columns[index % 4]:
+
+                    with st.container(border=True):
+
+                        st.markdown(
+                            f"#### {result['model']} — {result['name']}"
+                        )
+
+                        st.write(result["translation"])
+
+                        st.caption(
+                            f"Latency: {result['latency_ms']:.2f} ms"
+                        )
+
+
+            if len(results) > 1:
+
+                st.markdown("### Model comparison")
+
+                comparison_df = pd.DataFrame(
+                    [
+                        {
+                            "Model": f"{r['model']} — {r['name']}",
+                            "Translation": r["translation"],
+                            "Latency (ms)": round(r["latency_ms"], 2),
+                        }
+                        for r in results
+                    ]
+                )
+
+                st.dataframe(
+                    comparison_df,
+                    hide_index=True,
+                    use_container_width=True,
+                )
+
+            with st.expander("Decoding configuration"):
+                st.json(DECODING_CONFIG)
+                st.caption(
+                    "These decoding settings apply to the NMT models. "
+                    "Qwen uses separate MLX generation settings."
+                )
+
+        for error in errors:
+            st.error(error)
 
 
 
@@ -494,350 +576,343 @@ with translate_tab:
 # ============================================================
 
 
-with practice_tab:
+    with practice_tab:
 
-    st.subheader("Test Yourself — German → English")
+        st.subheader("Test Yourself — German → English")
 
-    @st.cache_data
-    def load_exercises():
-        df = pd.read_csv(
-            "data/exercises/translation_exercises.csv"
-        )
-
-        required = {
-            "id", "domain", "source", "reference", "focus"
-        }
-        if not required.issubset(df.columns):
-            raise ValueError("Missing exercise CSV columns.")
-
-        return df
-
-    exercises = load_exercises()
-
-    exercise_col, translation_col = st.columns(
-        2,
-        gap="large",
-    )
-
-    # LEFT — Exercise selection and German source
-    with exercise_col:
-
-        domain = st.radio(
-            "Choose exercise category",
-            ["general", "technical"],
-            horizontal=True,
-            format_func=lambda x: x.title(),
-        )
-
-        filtered = exercises[
-            exercises["domain"] == domain
-        ].reset_index(drop=True)
-
-        exercise_index = st.selectbox(
-            "Select an exercise",
-            range(len(filtered)),
-            format_func=lambda i: (
-                f"Exercise {i + 1} — {filtered.iloc[i]['focus']}"
-            ),
-        )
-
-        exercise = filtered.iloc[exercise_index]
-
-        st.info(exercise["source"])
-        st.caption(f"Focus: {exercise['focus']}")
-
-    # RIGHT — English translation and COMET
-    with translation_col:
-
-        user_answer = st.text_area(
-            "Your English translation:",
-            key=(
-                f"answer_{active_user_id}_"
-                f"{domain}_{exercise['id']}"
-            ),
-            height=150,
-            placeholder="Write your English translation here...",
-        )
-
-        enable_comet = st.checkbox(
-            "Calculate COMET",
-            value=True,
-            help=(
-                "Evaluate translation quality "
-                "using a neural model."
-            ),
-        )
-    
-    
-    
-    # ========================================================
-    # STAGE 1 — SUBMIT AND ANALYZE
-    # ========================================================
-
-    exercise_key = f"{domain}_{exercise['id']}"
-    state_key = f"practice_active_attempt_{active_user_id}"
-
-    with translation_col:
-        analyze_clicked = st.button(
-            "Analyze translation",
-            type="primary",
-        )
-
-    if analyze_clicked:
-
-        if not user_answer.strip():
-            st.warning("Please enter a translation.")
-
-        else:
-            source = str(exercise["source"])
-            reference = str(exercise["reference"])
-
-            analysis = analyze_translation(
-                source=source,
-                reference=reference,
-                prediction=user_answer,
+        @st.cache_data
+        def load_exercises():
+            df = pd.read_csv(
+                "data/exercises/translation_exercises.csv"
             )
 
-            attempt_id = save_attempt(
-                exercise_id=exercise["id"],
-                domain=domain,
-                source=source,
-                reference=reference,
-                user_translation=user_answer,
-                analysis=analysis,
-                user_id=active_user_id,
-            )
-
-            st.session_state[state_key] = {
-                "attempt_id": attempt_id,
-                "exercise_key": exercise_key,
-                "enable_comet": enable_comet,
+            required = {
+                "id", "domain", "source", "reference", "focus"
             }
+            if not required.issubset(df.columns):
+                raise ValueError("Missing exercise CSV columns.")
 
-    # ========================================================
-    # STAGE 2 — SHOW ERROR ANALYSIS
-    # ========================================================
+            return df
 
-    active = st.session_state.get(state_key)
+        exercises = load_exercises()
 
-    if active and active["exercise_key"] == exercise_key:
-
-        attempt = get_attempt(
-            active["attempt_id"],
-            user_id=active_user_id,
-        )
-
-        if attempt is None:
-            st.error("Saved attempt could not be found.")
-            st.stop()
-
-        st.markdown("### Translation error analysis")
-
-        st.write("**German source:**", attempt["source"])
-        st.write("**Your translation:**", attempt["user_translation"])
-        st.write("**Reference translation:**", attempt["reference"])
-
-        analysis = json.loads(attempt["rule_feedback"])
-
-        status_labels = {
-            "review_suggested": "Review suggested",
-            "no_difference_detected": "No difference detected",
-            "not_verified": "Not automatically verified",
-        }
-
-        error_columns = st.columns(
+        exercise_col, translation_col = st.columns(
             2,
-            gap="medium",
+            gap="large",
         )
 
-        for index, item in enumerate(analysis):
+        # LEFT — Exercise selection and German source
+        with exercise_col:
 
-            with error_columns[index % 2]:
+            domain = st.radio(
+                "Choose exercise category",
+                ["general", "technical"],
+                horizontal=True,
+                format_func=lambda x: x.title(),
+            )
 
-                with st.container(border=True):
+            filtered = exercises[
+                exercises["domain"] == domain
+            ].reset_index(drop=True)
 
-                    st.markdown(
-                        f"**{item['category'].replace('_', ' ').title()}**"
-                    )
+            exercise_index = st.selectbox(
+                "Select an exercise",
+                range(len(filtered)),
+                format_func=lambda i: (
+                    f"Exercise {i + 1} — {filtered.iloc[i]['focus']}"
+                ),
+            )
 
-                    st.caption(
-                        status_labels.get(
-                            item["status"],
-                            item["status"],
-                        )
-                    )
+            exercise = filtered.iloc[exercise_index]
 
-                    st.write(item["explanation"])
+            st.info(exercise["source"])
+            st.caption(f"Focus: {exercise['focus']}")
 
-                    st.caption(
-                        f"Rule: {item['rule']}"
-                    )
+        # RIGHT — English translation and COMET
+        with translation_col:
 
+            user_answer = st.text_area(
+                "Your English translation:",
+                key=(
+                    f"answer_{active_user_id}_"
+                    f"{domain}_{exercise['id']}"
+                ),
+                height=150,
+                placeholder="Write your English translation here...",
+            )
 
-        st.info(
-            "These are heuristic checks, not verified errors. "
-            "Different wording may be equally correct."
-        )
+            enable_comet = st.checkbox(
+                "Calculate COMET",
+                value=True,
+                help=(
+                    "Evaluate translation quality "
+                    "using a neural model."
+                ),
+            )
+    
+    
+    
+        # ========================================================
+        # STAGE 1 — SUBMIT AND ANALYZE
+        # ========================================================
 
-        # ====================================================
-        # STAGE 3 — REVEAL METRICS
-        # ====================================================
+        exercise_key = f"{domain}_{exercise['id']}"
+        state_key = f"practice_active_attempt_{active_user_id}"
 
-        if attempt["scores_revealed_at"] is None:
-
-            if st.button(
-                "Reveal evaluation scores",
+        with translation_col:
+            analyze_clicked = st.button(
+                "Analyze translation",
                 type="primary",
-                key=f"reveal_{attempt['attempt_id']}",
-            ):
+            )
 
-                with st.spinner("Generating model translation..."):
+        if analyze_clicked:
 
-                    tokenizer, model = load_translation_model(
-                        MODELS["de-en"]
-                    )
+            if not user_answer.strip():
+                st.warning("Please enter a translation.")
 
-                    model_answer, latency_ms = translate(
-                        attempt["source"],
-                        tokenizer,
-                        model,
-                    )
+            else:
+                source = str(exercise["source"])
+                reference = str(exercise["reference"])
 
-                user_scores = calculate_translation_metrics(
-                    attempt["user_translation"],
-                    attempt["reference"],
+                analysis = analyze_translation(
+                    source=source,
+                    reference=reference,
+                    prediction=user_answer,
                 )
 
-                model_scores = calculate_translation_metrics(
-                    model_answer,
-                    attempt["reference"],
-                )
-
-                comet_scores = None
-
-                if active["enable_comet"]:
-
-                    try:
-                        with st.spinner("Calculating COMET scores..."):
-
-                            comet_scores = calculate_comet_isolated(
-                                source=attempt["source"],
-                                user_translation=attempt["user_translation"],
-                                model_translation=model_answer,
-                                reference=attempt["reference"],
-                            )
-
-                    except Exception as error:
-                        st.warning(
-                            f"COMET unavailable: {error}"
-                        )
-
-                save_scores(
-                    attempt_id=attempt["attempt_id"],
-                    user_scores=user_scores,
-                    model_scores=model_scores,
-                    model_translation=model_answer,
-                    comet_scores=comet_scores,
+                attempt_id = save_attempt(
+                    exercise_id=exercise["id"],
+                    domain=domain,
+                    source=source,
+                    reference=reference,
+                    user_translation=user_answer,
+                    analysis=analysis,
                     user_id=active_user_id,
                 )
 
-                st.rerun()
+                st.session_state[state_key] = {
+                    "attempt_id": attempt_id,
+                    "exercise_key": exercise_key,
+                    "enable_comet": enable_comet,
+                }
 
-        else:
+        # ========================================================
+        # STAGE 2 — SHOW ERROR ANALYSIS
+        # ========================================================
 
-            # =================================================
-            # STAGE 4 — DISPLAY SAVED SCORES
-            # =================================================
+        active = st.session_state.get(state_key)
 
-            st.markdown("### Translation comparison")
+        if active and active["exercise_key"] == exercise_key:
 
-            st.write(
-                "**Model translation:**",
-                attempt["model_translation"],
+            attempt = get_attempt(
+                active["attempt_id"],
+                user_id=active_user_id,
             )
 
-            results = pd.DataFrame({
-                "Metric": ["BLEU", "chrF"],
-                "Your translation": [
-                    attempt["bleu"],
-                    attempt["chrf"],
-                ],
-                "Model translation": [
-                    attempt["model_bleu"],
-                    attempt["model_chrf"],
-                ],
-            })
+            if attempt is None:
+                st.error("Saved attempt could not be found.")
+                st.stop()
 
-            if attempt["comet"] is not None:
+            st.markdown("### Translation error analysis")
 
-                results = pd.concat([
+            st.write("**German source:**", attempt["source"])
+            st.write("**Your translation:**", attempt["user_translation"])
+            st.write("**Reference translation:**", attempt["reference"])
+
+            analysis = json.loads(attempt["rule_feedback"])
+
+            status_labels = {
+                "review_suggested": "Review suggested",
+                "no_difference_detected": "No difference detected",
+                "not_verified": "Not automatically verified",
+            }
+
+            error_columns = st.columns(
+                2,
+                gap="medium",
+            )
+
+            for index, item in enumerate(analysis):
+
+                with error_columns[index % 2]:
+
+                    with st.container(border=True):
+
+                        st.markdown(
+                            f"**{item['category'].replace('_', ' ').title()}**"
+                        )
+
+                        st.caption(
+                            status_labels.get(
+                                item["status"],
+                                item["status"],
+                            )
+                        )
+
+                        st.write(item["explanation"])
+
+                        st.caption(
+                            f"Rule: {item['rule']}"
+                        )
+
+
+            st.info(
+                "These are heuristic checks, not verified errors. "
+                "Different wording may be equally correct."
+            )
+
+            # ====================================================
+            # STAGE 3 — REVEAL METRICS
+            # ====================================================
+
+            if attempt["scores_revealed_at"] is None:
+
+                if st.button(
+                    "Reveal evaluation scores",
+                    type="primary",
+                    key=f"reveal_{attempt['attempt_id']}",
+                ):
+
+                    with st.spinner("Generating model translation..."):
+
+                        tokenizer, model = load_translation_model(
+                            MODELS["de-en"]
+                        )
+
+                        model_answer, latency_ms = translate(
+                            attempt["source"],
+                            tokenizer,
+                            model,
+                        )
+
+                    user_scores = calculate_translation_metrics(
+                        attempt["user_translation"],
+                        attempt["reference"],
+                    )
+
+                    model_scores = calculate_translation_metrics(
+                        model_answer,
+                        attempt["reference"],
+                    )
+
+                    comet_scores = None
+
+                    if active["enable_comet"]:
+
+                        try:
+                            with st.spinner("Calculating COMET scores..."):
+
+                                comet_scores = calculate_comet_isolated(
+                                    source=attempt["source"],
+                                    user_translation=attempt["user_translation"],
+                                    model_translation=model_answer,
+                                    reference=attempt["reference"],
+                                )
+
+                        except Exception as error:
+                            st.warning(
+                                f"COMET unavailable: {error}"
+                            )
+
+                    save_scores(
+                        attempt_id=attempt["attempt_id"],
+                        user_scores=user_scores,
+                        model_scores=model_scores,
+                        model_translation=model_answer,
+                        comet_scores=comet_scores,
+                        user_id=active_user_id,
+                    )
+
+                    st.rerun()
+
+            else:
+
+                # =================================================
+                # STAGE 4 — DISPLAY SAVED SCORES
+                # =================================================
+
+                st.markdown("### Translation comparison")
+
+                st.write(
+                    "**Model translation:**",
+                    attempt["model_translation"],
+                )
+
+                results = pd.DataFrame({
+                    "Metric": ["BLEU", "chrF"],
+                    "Your translation": [
+                        attempt["bleu"],
+                        attempt["chrf"],
+                    ],
+                    "Model translation": [
+                        attempt["model_bleu"],
+                        attempt["model_chrf"],
+                    ],
+                })
+
+                if attempt["comet"] is not None:
+
+                    results = pd.concat([
+                        results,
+                        pd.DataFrame([{
+                            "Metric": "COMET",
+                            "Your translation": round(
+                                attempt["comet"], 4
+                            ),
+                            "Model translation": round(
+                                attempt["model_comet"], 4
+                            ),
+                        }]),
+                    ], ignore_index=True)
+
+                st.markdown("### Evaluation metrics")
+                st.dataframe(
                     results,
-                    pd.DataFrame([{
-                        "Metric": "COMET",
-                        "Your translation": round(
-                            attempt["comet"], 4
-                        ),
-                        "Model translation": round(
-                            attempt["model_comet"], 4
-                        ),
-                    }]),
-                ], ignore_index=True)
+                    hide_index=True,
+                    use_container_width=True,
+                )
 
-            st.markdown("### Evaluation metrics")
-            st.dataframe(
-                results,
-                hide_index=True,
-                use_container_width=True,
-            )
-
-            st.markdown("#### BLEU and chrF")
-
-            st.bar_chart(
-                results[
-                    results["Metric"] == "COMET"
-                ].set_index("Metric"),
-                stack=False,
-                y_label="COMET score",
-            )
-
-            if attempt["comet"] is not None:
-
-                st.markdown("#### COMET")
+                st.markdown("#### BLEU and chrF")
 
                 st.bar_chart(
                     results[
-                        results["Metric"] == "COMET"
-                    ].set_index("Metric")
+                        results["Metric"].isin(["BLEU", "chrF"])
+                    ].set_index("Metric"),
+                    stack=False,
+                    y_label="Score (0–100)",
                 )
 
-            st.caption(
-                "BLEU and chrF use a 0–100 scale. "
-                "COMET is a neural quality estimate "
-                "and uses a different scale."
-            )
+                if attempt["comet"] is not None:
+
+                    st.markdown("#### COMET")
+
+                    st.bar_chart(
+                        results[
+                            results["Metric"] == "COMET"
+                        ].set_index("Metric")
+                    )
+
+                st.caption(
+                    "BLEU and chrF use a 0–100 scale. "
+                    "COMET is a neural quality estimate "
+                    "and uses a different scale."
+                )
 
 
 
-# ============================================================
-# TAB 4 — DAILY GERMAN VOCABULARY
-# ============================================================
+    # ========================================================
+    # TAB 3 — DAILY VOCABULARY
+    # ========================================================
 
-with vocabulary_tab:
-    render_vocabulary_page(learner_id=active_user_id)
+    with vocabulary_tab:
+        render_vocabulary_page(learner_id=active_user_id)
 
+    # ========================================================
+    # TAB 4 — HUMAN PREFERENCE EVALUATION
+    # ========================================================
 
-# ============================================================
-# TAB 5 — HUMAN PREFERENCE EVALUATION
-# ============================================================
-
-with preference_tab:
-    render_human_preference_page(
-    user_id=active_user_id,
-    username=active_username,
-)
-
-# ============================================================
-# TAB 6 — HUMAN EVALUATION ANALYTICS
-# ============================================================
-with human_analytics_tab:
-    render_human_analytics_page()
+    with preference_tab:
+        render_human_preference_page(
+            user_id=active_user_id,
+            username=active_username,
+        )

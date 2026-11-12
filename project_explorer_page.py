@@ -145,97 +145,9 @@ def render_project_explorer_page():
 
         st.divider()
 
-        # ----------------------------------------------------
-        # SECTION 2 — KEY PYTHON FILES
-        # ----------------------------------------------------
-        st.subheader("Key Python Files")
-
-
-        python_files = [
-            (
-                "train.py",
-                "Model Training",
-                """
-                **Purpose:** Main entry point for fine-tuning the
-                MarianMT translation models (E1 and E2).
-
-                **Main responsibilities:**
-                - Reads experiment settings from a JSON configuration.
-                - Validates dataset and output paths.
-                - Loads the pretrained model and tokenizer.
-                - Loads and tokenizes training and validation datasets.
-                - Checks token truncation and prepares padded batches.
-                - Configures the Hugging Face Seq2SeqTrainer.
-                - Runs training and saves checkpoints, metrics and
-                  the final trained model.
-
-                **Project role:** Converts prepared translation data
-                into fine-tuned German-to-English translation models.
-                """
-            ),
-            (
-                "src/training_utils.py",
-                "Training Utilities",
-                """
-                **Purpose:** Provides reusable functions for the
-                training pipeline.
-
-                **Functions used by train.py:**
-                - `load_translation_dataset()` — loads translation data.
-                - `tokenize_dataset()` — prepares tokenized examples.
-                - `truncation_report()` — reports potential truncation
-                  at configured sequence lengths.
-
-                **Project role:** Keeps reusable data-processing
-                operations separate from the main training script.
-                """
-            ),
-            (
-                "MVP_streamlit_app.py",
-                "Streamlit Application",
-                """
-                **Purpose:** Main entry point for the interactive
-                TransistorAI web application.
-
-                **Main responsibilities:**
-                - Provides the German-to-English translation interface.
-                - Lets users interact with available translation models.
-                - Includes translation practice and evaluation features.
-                - Integrates the Project Explorer.
-
-                **Project role:** Makes the translation systems
-                accessible through a user-friendly web interface.
-                """
-            ),
-            (
-                "project_explorer_page.py",
-                "Project Documentation and Visualization",
-                """
-                **Purpose:** Explains the development and evaluation
-                of TransistorAI through an interactive Streamlit page.
-
-                **Main responsibilities:**
-                - Explains repository organization and training.
-                - Introduces BLEU, chrF and COMET.
-                - Documents datasets and data preparation.
-                - Compares E0, E1, E2 and E3.
-                - Visualizes experiment results and human evaluation.
-
-                **Project role:** Connects the technical implementation
-                with the research findings and final presentation.
-                """
-            ),
-        ]
-
-        for filename, subtitle, explanation in python_files:
-            with st.expander(f"📄 {filename} — {subtitle}"):
-                st.markdown(explanation)
-
-
-        st.divider()
 
         # ----------------------------------------------------
-        # SECTION 3 — PROJECT WORKFLOW
+        # SECTION 2  — PROJECT WORKFLOW
         # ----------------------------------------------------
         st.subheader("How the Components Work Together")
 
@@ -281,7 +193,62 @@ def render_project_explorer_page():
             "results together for interactive exploration."
         )
 
+        st.divider()
+        # ----------------------------------------------------
+        # SECTION 3 — KEY PYTHON FILES
+        # ----------------------------------------------------
+        st.subheader("Key Python Files")
 
+
+        python_files = [
+            (
+                "train.py",
+                "Model Training",
+                """
+                **Purpose:** Main entry point for fine-tuning the
+                MarianMT translation models (E1 and E2).
+
+                **Main responsibilities:**
+                - Reads experiment settings from a JSON configuration.
+                - Validates dataset and output paths.
+                - Loads the pretrained model and tokenizer.
+                - Loads and tokenizes training and validation datasets.
+                - Checks token truncation and prepares padded batches.
+                - Configures the Hugging Face Seq2SeqTrainer.
+                - Runs training and saves checkpoints, metrics and
+                  the final trained model.
+
+                **Project role:** Converts prepared translation data
+                into fine-tuned German-to-English translation models.
+                """
+            ),
+            (
+            "src/training_utils.py",
+            "Training Utilities",
+            """
+            **Purpose:** Provides reusable functions for preparing datasets
+            and checking input lengths during model training.
+
+            **Functions used by `src/train.py`:**
+            - `load_translation_dataset()` — loads translation datasets.
+            - `tokenize_dataset()` — tokenizes training and validation examples.
+            - `truncation_report()` — identifies potential sequence truncation.
+
+            **Project role:** Separates reusable data preparation and
+            validation utilities from the main training script (`src/train.py`).
+            """
+            ),
+            
+        ]
+
+        for filename, subtitle, explanation in python_files:
+            with st.expander(f"📄 {filename} — {subtitle}"):
+                st.markdown(explanation)
+
+
+        
+
+        
     # ============================================================
     # TAB 1 — TRAINING PIPELINE
     # ============================================================

@@ -33,10 +33,11 @@ def render_user_selection():
     if active_user is not None:
         return active_user
 
-    st.title("🌍 Welcome to TransistorAI")
+    st.title("👤 Select Your Profile")
     st.write(
-        "Your German–English translation and language-learning "
-        "platform."
+        "Welcome to TransistorInteraction! "
+        "Create a new profile or select an existing user "
+        "to access the interactive translation and learning tools."
     )
 
     st.info(
@@ -127,6 +128,14 @@ def render_active_user_sidebar():
         ):
             # Clear the selected identity.
             st.session_state.pop("active_user_id", None)
+
+            for key in [
+                "translation_results",
+                "translation_errors",
+                "translation_input",
+                "translation_source",
+            ]:
+                st.session_state.pop(key, None)
 
             # Clear widget state when switching profiles.
             for key in list(st.session_state.keys()):
