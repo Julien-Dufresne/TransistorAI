@@ -3,13 +3,19 @@
 # PyTorch runs the neural network.
 # Transformers loads the pretrained model and tokenizer.
 # time.perf_counter() measures elapsed time precisely.
-
+import altair as alt
 import json
 from project_explorer_page import render_project_explorer_page
 
+from evaluation.hybrid_error_analysis import analyze_hybrid
+
 from evaluation.streamlit_error_analysis import (
     analyze_translation,
+    detect_mistakes,
 )
+
+from evaluation.mistake_tracker import save_mistakes
+
 from evaluation.streamlit_attempts import (
     save_attempt,
     get_attempt,
@@ -46,6 +52,8 @@ from evaluation.streamlit_metrics import (
     calculate_translation_metrics,
 )
 from evaluation.comet_subprocess import calculate_comet_isolated
+
+from my_mistakes_page import render_my_mistakes_page
 
 # STEP 2 — Define model and decoding configuration
 # Keep the same configuration as Day 2 to make results
@@ -410,11 +418,13 @@ if section == "interaction":
     (
         translate_tab,
         practice_tab,
+        mistakes_tab,
         vocabulary_tab,
         preference_tab,
     ) = st.tabs([
         "🌍 Translate",
         "🎓 Test Yourself",
+        "🧠 My Mistakes",
         "📚 Daily Vocabulary",
         "🏆 Human Preference Evaluation",
     ])
@@ -721,45 +731,118 @@ if section == "interaction":
 
             analysis = json.loads(attempt["rule_feedback"])
 
-            status_labels = {
-                "review_suggested": "Review suggested",
-                "no_difference_detected": "No difference detected",
-                "not_verified": "Not automatically verified",
-            }
+            
+            # ====================================================
+            # INDIVIDUAL MISTAKE DETECTION AND SELECTION
+            # ====================================================
 
-            error_columns = st.columns(
-                2,
-                gap="medium",
-            )
+            
+            analysis_key = f"hybrid_analysis_{attempt['attempt_id']}"
 
-            for index, item in enumerate(analysis):
+            if analysis_key not in st.session_state:
+                with st.spinner(
+                    "Analyzing your translation with Qwen and Python rules..."
+                ):
+                    st.session_state[analysis_key] = analyze_hybrid(
+                        source=attempt["source"],
+                        reference=attempt["reference"],
+                        prediction=attempt["user_translation"],
+                    )
 
-                with error_columns[index % 2]:
+            hybrid_result = st.session_state[analysis_key]
+            mistakes = hybrid_result["mistakes"]
+
+
+            general_feedback = hybrid_result.get("general_feedback", [])
+
+            if general_feedback:
+                st.markdown("#### Translation feedback")
+
+                st.caption(
+                    "These are AI-generated observations that need review. "
+                    "They are not confirmed mistakes."
+                )
+
+                for feedback in general_feedback:
+                    with st.container(border=True):
+                        st.write(feedback["explanation"])
+
+                        st.markdown("**Your translation**")
+                        st.write(feedback["original_text"])
+
+                        st.markdown("**Suggested alternative**")
+                        st.write(feedback["corrected_text"])
+
+
+            if hybrid_result["warning"]:
+                st.warning(hybrid_result["warning"])
+
+            if not mistakes:
+                st.success(
+                    "No differences detected by the current rules. "
+                    "This does not guarantee a perfect translation."
+                )
+
+            else:
+                st.markdown(
+                    f"#### {len(mistakes)} potential mistake(s)"
+                )
+
+                st.caption(
+                    "Review each suggestion before saving. "
+                    "Alternative translations may also be correct."
+                )
+
+                selected_mistakes = []
+
+                for index, mistake in enumerate(mistakes):
 
                     with st.container(border=True):
 
-                        st.markdown(
-                            f"**{item['category'].replace('_', ' ').title()}**"
+                        selected = st.checkbox(
+                            f"Track: {mistake['category'].replace('_', ' ').title()}",
+                            key=(
+                                f"mistake_{attempt['attempt_id']}_{index}"
+                            ),
+                            value=False,
                         )
 
-                        st.caption(
-                            status_labels.get(
-                                item["status"],
-                                item["status"],
+                        left, right = st.columns(2)
+
+                        with left:
+                            st.markdown("**Your text**")
+                            st.write(
+                                mistake["original_text"] or "—"
                             )
-                        )
 
-                        st.write(item["explanation"])
+                        with right:
+                            st.markdown("**Suggested correction**")
+                            st.write(
+                                mistake["corrected_text"] or "—"
+                            )
 
-                        st.caption(
-                            f"Rule: {item['rule']}"
-                        )
+                        st.caption(mistake["explanation"])
 
+                        if selected:
+                            selected_mistakes.append(mistake)
 
-            st.info(
-                "These are heuristic checks, not verified errors. "
-                "Different wording may be equally correct."
-            )
+                if st.button(
+                    "Save selected mistakes",
+                    type="primary",
+                    key=f"save_mistakes_{attempt['attempt_id']}",
+                    disabled=not selected_mistakes,
+                ):
+                    saved_ids = save_mistakes(
+                        attempt_id=attempt["attempt_id"],
+                        user_id=active_user_id,
+                        mistakes=selected_mistakes,
+                    )
+
+                    st.success(
+                        f"Saved {len(saved_ids)} mistake(s) "
+                        "to your learning history."
+                    )
+
 
             # ====================================================
             # STAGE 3 — REVEAL METRICS
@@ -872,31 +955,123 @@ if section == "interaction":
                     use_container_width=True,
                 )
 
+                
+                # ================================================
+                # BLEU AND chrF — FIXED SCALE, NO SCROLL ZOOM
+                # ================================================
+
                 st.markdown("#### BLEU and chrF")
 
-                st.bar_chart(
-                    results[
-                        results["Metric"].isin(["BLEU", "chrF"])
-                    ].set_index("Metric"),
-                    stack=False,
-                    y_label="Score (0–100)",
+                bleu_chrf_df = results[
+                    results["Metric"].isin(["BLEU", "chrF"])
+                ].melt(
+                    id_vars="Metric",
+                    value_vars=[
+                        "Your translation",
+                        "Model translation",
+                    ],
+                    var_name="Translation",
+                    value_name="Score",
                 )
+
+                bleu_chrf_chart = (
+                    alt.Chart(bleu_chrf_df)
+                    .mark_bar()
+                    .encode(
+                        x=alt.X(
+                            "Metric:N",
+                            title=None,
+                            sort=["BLEU", "chrF"],
+                            axis=alt.Axis(labelAngle=0),
+                        ),
+                        xOffset=alt.XOffset("Translation:N"),
+                        y=alt.Y(
+                            "Score:Q",
+                            title="Score (0–100)",
+                            scale=alt.Scale(
+                                domain=[0, 100],
+                                nice=False,
+                            ),
+                        ),
+                        color=alt.Color(
+                            "Translation:N",
+                            title="Translation",
+                        ),
+                        tooltip=[
+                            alt.Tooltip("Metric:N"),
+                            alt.Tooltip("Translation:N"),
+                            alt.Tooltip("Score:Q", format=".2f"),
+                        ],
+                    )
+                    .properties(height=300)
+                    
+                )
+
+                st.altair_chart(
+                    bleu_chrf_chart,
+                    use_container_width=True,
+                )
+
+                # ================================================
+                # COMET — FIXED SCALE, NO SCROLL ZOOM
+                # ================================================
 
                 if attempt["comet"] is not None:
 
                     st.markdown("#### COMET")
 
-                    st.bar_chart(
-                        results[
-                            results["Metric"] == "COMET"
-                        ].set_index("Metric")
+                    comet_df = results[
+                        results["Metric"] == "COMET"
+                    ].melt(
+                        id_vars="Metric",
+                        value_vars=[
+                            "Your translation",
+                            "Model translation",
+                        ],
+                        var_name="Translation",
+                        value_name="Score",
                     )
 
-                st.caption(
-                    "BLEU and chrF use a 0–100 scale. "
-                    "COMET is a neural quality estimate "
-                    "and uses a different scale."
-                )
+                    comet_chart = (
+                        alt.Chart(comet_df)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X(
+                                "Metric:N",
+                                title=None,
+                                axis=alt.Axis(labelAngle=0),
+                            ),
+                            xOffset=alt.XOffset("Translation:N"),
+                            y=alt.Y(
+                                "Score:Q",
+                                title="COMET score",
+                                scale=alt.Scale(
+                                    domain=[0, 1],
+                                    nice=False,
+                                    zero=True,
+                                ),
+                                axis=alt.Axis(
+                                    values=[0, 0.2, 0.4, 0.6, 0.8, 1],
+                                ),
+                            ),
+                            color=alt.Color(
+                                "Translation:N",
+                                title="Translation",
+                            ),
+                            tooltip=[
+                                alt.Tooltip("Translation:N"),
+                                alt.Tooltip("Score:Q", format=".4f"),
+                            ],
+                        )
+                        .properties(height=300)
+                        
+                    )
+
+                    st.altair_chart(
+                        comet_chart,
+                        use_container_width=True,
+                    )
+
 
 
 
@@ -915,4 +1090,13 @@ if section == "interaction":
         render_human_preference_page(
             user_id=active_user_id,
             username=active_username,
+        )
+
+    # ============================================================
+    # MY MISTAKES
+    # ============================================================
+
+    with mistakes_tab:
+        render_my_mistakes_page(
+            user_id=active_user_id
         )

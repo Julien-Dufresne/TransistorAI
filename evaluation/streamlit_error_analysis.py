@@ -187,3 +187,280 @@ def analyze_translation(
 
     return results
 
+
+def detect_mistakes(source, reference, prediction):
+    """Generate individual, unverified mistake suggestions."""
+    suggestions = []
+    seen = set()
+
+    def add(category, original, corrected, explanation):
+        key = (category, original, corrected)
+        if key not in seen:
+            seen.add(key)
+            suggestions.append({
+                "category": category,
+                "original_text": original,
+                "corrected_text": corrected,
+                "explanation": explanation,
+                "verified_error": False,
+            })
+
+    # Capitalization differences
+    ref_words = WORD_PATTERN.findall(reference)
+    pred_words = WORD_PATTERN.findall(prediction)
+
+    if [w.lower() for w in ref_words] == [
+        w.lower() for w in pred_words
+    ]:
+        for expected, actual in zip(ref_words, pred_words):
+            if expected != actual:
+                add(
+                    "capitalization",
+                    actual,
+                    expected,
+                    "Capitalization differs from the reference."
+                )
+
+    # Numerical differences
+    numbers = compare_tokens(
+        reference, prediction, NUMBER_PATTERN
+    )
+
+    if numbers["missing"] or numbers["extra"]:
+        add(
+            "numbers",
+            ", ".join(numbers["extra"]),
+            ", ".join(numbers["missing"]),
+            "Numerical values differ from the reference."
+        )
+
+    # Placeholder preservation
+    placeholders = compare_tokens(
+        source, prediction, PLACEHOLDER_PATTERN
+    )
+
+    if placeholders["missing"] or placeholders["extra"]:
+        add(
+            "placeholders",
+            ", ".join(placeholders["extra"]),
+            ", ".join(placeholders["missing"]),
+            "Placeholders should be preserved from the source."
+        )
+
+    # Negation differences
+    ref_negation = bool(NEGATION_PATTERN.search(reference))
+    pred_negation = bool(NEGATION_PATTERN.search(prediction))
+
+    if ref_negation != pred_negation:
+        add(
+            "meaning",
+            prediction,
+            reference,
+            "Possible change in meaning due to negation."
+        )
+
+    # Possible omissions
+    reference_words = {
+        w.lower()
+        for w in WORD_PATTERN.findall(reference)
+        if w.lower() not in STOPWORDS and len(w) > 3
+    }
+
+    prediction_words = {
+        w.lower() for w in WORD_PATTERN.findall(prediction)
+    }
+
+    missing = sorted(reference_words - prediction_words)
+
+    for word in missing:
+        add(
+            "omissions",
+            "",
+            word,
+            "Reference word not found. Check whether "
+            "the meaning is already expressed differently."
+        )
+
+    # Formatting
+    if reference.count("\n") != prediction.count("\n"):
+        add(
+            "formatting",
+            prediction,
+            reference,
+            "Line-break count differs from the reference."
+        )
+
+    return suggestions
+
+
+
+ENGLISH_NUMBERS = {
+    "zero": 0, "one": 1, "two": 2, "three": 3,
+    "four": 4, "five": 5, "six": 6, "seven": 7,
+    "eight": 8, "nine": 9, "ten": 10,
+}
+
+GERMAN_NUMBERS = {
+    "null": 0, "eins": 1, "ein": 1, "eine": 1,
+    "zwei": 2, "drei": 3, "vier": 4,
+    "fünf": 5, "sechs": 6, "sieben": 7,
+    "acht": 8, "neun": 9, "zehn": 10,
+}
+
+
+def detect_structured_mistakes(source, reference, prediction):
+    """Detect high-confidence capitalization and number errors."""
+
+    mistakes = []
+
+    # 1. Sentence-initial capitalization
+    first_word = re.search(r"[A-Za-z]+", prediction)
+
+    if first_word:
+        original = first_word.group()
+
+        if original[0].islower():
+            corrected = original[0].upper() + original[1:]
+
+            mistakes.append({
+                "category": "capitalization",
+                "original_text": original,
+                "corrected_text": corrected,
+                "explanation": (
+                    "The first word of an English sentence "
+                    "must be capitalized."
+                ),
+                "verified_error": False,
+                "detector": "rules",
+            })
+
+    # 2. Compare written and digit numbers
+    def extract_numbers(text, language):
+        number_map = (
+            GERMAN_NUMBERS
+            if language == "de"
+            else ENGLISH_NUMBERS
+        )
+
+        tokens = re.findall(
+            r"\b[\wäöüÄÖÜß]+\b|\d+",
+            text.lower(),
+        )
+
+        values = []
+
+        for token in tokens:
+            if token.isdigit():
+                values.append((token, int(token)))
+            elif token in number_map:
+                values.append((token, number_map[token]))
+
+        return values
+
+    source_numbers = extract_numbers(source, "de")
+    prediction_numbers = extract_numbers(prediction, "en")
+
+    # Only compare simple one-to-one number cases.
+    if len(source_numbers) == len(prediction_numbers) == 1:
+
+        source_word, source_value = source_numbers[0]
+        prediction_word, prediction_value = prediction_numbers[0]
+
+        if source_value != prediction_value:
+
+            reference_numbers = extract_numbers(reference, "en")
+
+            corrected = (
+                reference_numbers[0][0]
+                if len(reference_numbers) == 1
+                and reference_numbers[0][1] == source_value
+                else str(source_value)
+            )
+
+            mistakes.append({
+                "category": "numbers",
+                "original_text": prediction_word,
+                "corrected_text": corrected,
+                "explanation": (
+                    f"The German source specifies {source_value}, "
+                    f"but your translation says {prediction_value}."
+                ),
+                "verified_error": False,
+                "detector": "rules",
+            })
+
+    return mistakes
+
+
+def detect_duration_preposition(prediction):
+    """Detect 'since' followed by a simple duration."""
+
+    duration_pattern = re.compile(
+        r"\bsince\s+"
+        r"(?:(?:\d+|one|two|three|four|five|six|"
+        r"seven|eight|nine|ten|a|an)\s+)"
+        r"(?:days?|weeks?|months?|years?|hours?|minutes?)\b",
+        re.IGNORECASE,
+    )
+
+    suggestions = []
+
+    for match in duration_pattern.finditer(prediction):
+        original = match.group()
+        corrected = re.sub(
+            r"^since\b", "for", original,
+            flags=re.IGNORECASE,
+        )
+
+        suggestions.append({
+            "category": "prepositions",
+            "original_text": original,
+            "corrected_text": corrected,
+            "explanation": (
+                "Use 'for' with a duration, such as "
+                "'for five years'. Use 'since' with a "
+                "starting point, such as 'since 2021'."
+            ),
+            "verified_error": False,
+            "detector": "rules",
+        })
+
+    return suggestions
+
+
+def detect_missing_negation(source, reference, prediction):
+    """Detect a missing English negation when supported by German."""
+
+    german_negation = re.compile(
+        r"\b(?:nicht|kein|keine|keinen|keinem|keiner|keines|nie|niemals)\b",
+        re.IGNORECASE,
+    )
+
+    english_negation = re.compile(
+        r"\b(?:not|no|never|don't|doesn't|didn't|"
+        r"isn't|aren't|wasn't|weren't|can't|cannot|"
+        r"won't|shouldn't|couldn't|without)\b",
+        re.IGNORECASE,
+    )
+
+    if not german_negation.search(source):
+        return []
+
+    if not english_negation.search(reference):
+        return []
+
+    if english_negation.search(prediction):
+        return []
+
+    return [{
+        "category": "meaning",
+        "original_text": prediction,
+        "corrected_text": reference,
+        "explanation": (
+            "The German source contains a negation, "
+            "but the English translation does not. "
+            "This may reverse the intended meaning."
+        ),
+        "verified_error": False,
+        "detector": "rules",
+    }]
