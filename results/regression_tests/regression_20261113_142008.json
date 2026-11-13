@@ -1,0 +1,1217 @@
+[
+  {
+    "id": "T01",
+    "group": "correct",
+    "source": "Ich habe zwei Bücher.",
+    "reference": "I have two books.",
+    "prediction": "I have two books.",
+    "expected": [],
+    "detected": [],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [],
+    "feedback": [],
+    "diagnostics": [],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T02",
+    "group": "paraphrase",
+    "source": "Das Auto ist sehr schnell.",
+    "reference": "The car is very fast.",
+    "prediction": "The car is really quick.",
+    "expected": [],
+    "detected": [],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "really quick",
+        "corrected": "very fast",
+        "stage": "initial_qwen",
+        "decision": "equivalent_paraphrase",
+        "reason": "The student's wording is acceptable in this context"
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T03",
+    "group": "paraphrase",
+    "source": "Wir fahren nächstes Wochenende nach Berlin.",
+    "reference": "We are going to Berlin next weekend.",
+    "prediction": "We are driving to Berlin next weekend.",
+    "expected": [],
+    "detected": [],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "We are driving to Berlin next weekend.",
+        "corrected": "We are going to Berlin next weekend.",
+        "stage": "initial_qwen",
+        "decision": "too_broad",
+        "reason": ""
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T04",
+    "group": "paraphrase",
+    "source": "Sie ist sehr glücklich.",
+    "reference": "She is very happy.",
+    "prediction": "She is delighted.",
+    "expected": [],
+    "detected": [
+      "vocabulary"
+    ],
+    "passed": false,
+    "missing": [],
+    "unexpected": [
+      "vocabulary"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "vocabulary",
+        "original_text": "She is delighted.",
+        "corrected_text": "She is very happy.",
+        "explanation": "The word 'delighted' does not accurately convey the meaning of 'sehr glücklich' in this context. 'Delighted' implies extreme joy, which is not necessarily the case with 'sehr glücklich.'",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "She is delighted.",
+        "corrected": "She is very happy.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'She is delighted' accurately preserves the meaning of 'Sie ist sehr glücklich' (She is very happy), and the proposed correction 'She is very happy' fixes a genuine error in the translation."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T05",
+    "group": "correct",
+    "source": "Der Hund schläft auf dem Sofa.",
+    "reference": "The dog is sleeping on the sofa.",
+    "prediction": "The dog is sleeping on the sofa.",
+    "expected": [],
+    "detected": [],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [],
+    "feedback": [],
+    "diagnostics": [],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T06",
+    "group": "paraphrase",
+    "source": "Kannst du mir helfen?",
+    "reference": "Can you help me?",
+    "prediction": "Could you help me?",
+    "expected": [],
+    "detected": [],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": true,
+    "mistakes": [],
+    "feedback": [
+      {
+        "category": "grammar",
+        "original_text": "Could you help me?",
+        "corrected_text": "Can you help me?",
+        "explanation": "The reference translation 'Can you help me?' is grammatically correct and preserves the meaning of the German source. The student's translation 'Could you help me?' is also grammatically correct and preserves the meaning, but it is a natural paraphrase of the reference. Therefore, no correction is needed.",
+        "verified_error": false,
+        "detector": "qwen",
+        "validation_status": "inconclusive"
+      }
+    ],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "Could you help me?",
+        "corrected": "Can you help me?",
+        "stage": "initial_qwen",
+        "decision": "inconclusive",
+        "reason": "The student's translation 'Could you help me?' is a natural paraphrase of the reference 'Can you help me?' and does not change the meaning. The student's original translation 'Kannst du mir helfen?' is already grammatically correct and preserves the meaning of the German source."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T07",
+    "group": "paraphrase",
+    "source": "Ich habe Hunger.",
+    "reference": "I am hungry.",
+    "prediction": "I'm hungry.",
+    "expected": [],
+    "detected": [
+      "grammar"
+    ],
+    "passed": false,
+    "missing": [],
+    "unexpected": [
+      "grammar"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "grammar",
+        "original_text": "I'm hungry.",
+        "corrected_text": "I am hungry.",
+        "explanation": "The student's translation uses the contraction 'I'm', which is not grammatically complete. The correct translation should use the full phrase 'I am'.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "I'm hungry.",
+        "corrected": "I am hungry.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'I'm hungry.' accurately preserves the meaning of the German source 'Ich habe Hunger.' despite being a contraction. The proposed correction 'I am hungry.' fixes a grammatical error by using the full phrase, but it does not change the meaning. Other unrelated errors may remain."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T08",
+    "group": "paraphrase",
+    "source": "Das Wetter ist heute schön.",
+    "reference": "The weather is nice today.",
+    "prediction": "It's lovely weather today.",
+    "expected": [],
+    "detected": [
+      "vocabulary"
+    ],
+    "passed": false,
+    "missing": [],
+    "unexpected": [
+      "vocabulary"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "vocabulary",
+        "original_text": "It's lovely weather today.",
+        "corrected_text": "The weather is nice today.",
+        "explanation": "The student used 'lovely' which does not accurately convey the meaning of 'schön' in this context. 'Nice' ('schön' in German) is the correct translation for 'schön' in this sentence.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "It's lovely weather today.",
+        "corrected": "The weather is nice today.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'It's lovely weather today.' contains a genuine translation error by using 'lovely' instead of 'nice' ('schön' in German), which does not accurately convey the meaning of 'schön' in this context. The proposed correction 'The weather is nice today.' fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T09",
+    "group": "grammar",
+    "source": "Ich habe gestern gearbeitet.",
+    "reference": "I worked yesterday.",
+    "prediction": "I work yesterday.",
+    "expected": [
+      "grammar"
+    ],
+    "detected": [
+      "grammar"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "grammar",
+        "original_text": "work",
+        "corrected_text": "worked",
+        "explanation": "The verb 'work' in the student's translation is in the present tense, which does not match the past tense required by the German source 'gearbeitet.'",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "work",
+        "corrected": "worked",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording contains a genuine translation error where 'work' is in the present tense instead of the past tense required by the German source 'gearbeitet'. The proposed correction changes 'work' to 'worked', which fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T10",
+    "group": "grammar",
+    "source": "Sie geht jeden Tag zur Schule.",
+    "reference": "She goes to school every day.",
+    "prediction": "She go to school every day.",
+    "expected": [
+      "grammar"
+    ],
+    "detected": [
+      "grammar"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "grammar",
+        "original_text": "She go to school every day.",
+        "corrected_text": "She goes to school every day.",
+        "explanation": "The verb 'go' in the student's translation is not conjugated correctly in the present tense. The correct form is 'goes'.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "She go to school every day.",
+        "corrected": "She goes to school every day.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording contains a genuine grammatical error ('go' instead of 'goes'), but the proposed correction fixes that error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T11",
+    "group": "grammar",
+    "source": "Er hat das Buch gelesen.",
+    "reference": "He read the book.",
+    "prediction": "He has read the book yesterday.",
+    "expected": [
+      "grammar"
+    ],
+    "detected": [
+      "omissions"
+    ],
+    "passed": false,
+    "missing": [
+      "grammar"
+    ],
+    "unexpected": [
+      "omissions"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "omissions",
+        "original_text": "He has read the book yesterday.",
+        "corrected_text": "He has read the book",
+        "explanation": "The reference translation omits the omission of the past perfect tense 'has read' and the addition of the past time marker 'yesterday'.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "omissions",
+        "original": "He has read the book yesterday.",
+        "corrected": "He has read the book",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording contains a genuine translation error by omitting the past perfect tense 'has read' and the past time marker 'yesterday'. The proposed correction fixes these errors."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T12",
+    "group": "grammar",
+    "source": "Wenn ich Zeit hätte, würde ich kommen.",
+    "reference": "If I had time, I would come.",
+    "prediction": "If I have time, I would come.",
+    "expected": [
+      "grammar"
+    ],
+    "detected": [
+      "grammar"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "grammar",
+        "original_text": "have time",
+        "corrected_text": "had time",
+        "explanation": "The student's translation uses the present tense 'have time', which does not match the past tense 'had time' used in the reference translation. The correct tense should reflect the past context of 'If I would come.'",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "have time",
+        "corrected": "had time",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'If I have time, I would come.' accurately preserves the relevant meaning of the German source 'Wenn ich Zeit hätte, würde ich kommen.' despite the present tense. The proposed correction 'If I had time, I would come.' fixes the identified error of using the present tense."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T13",
+    "group": "grammar",
+    "source": "Wir waren gestern zu Hause.",
+    "reference": "We were at home yesterday.",
+    "prediction": "We was at home yesterday.",
+    "expected": [
+      "grammar"
+    ],
+    "detected": [
+      "grammar"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "grammar",
+        "original_text": "We was at home yesterday.",
+        "corrected_text": "We were at home yesterday.",
+        "explanation": "The verb 'to be' in English must be conjugated in the correct tense. The original text uses the incorrect form 'was' which should be 'were' to match the plural subject 'We'.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "We was at home yesterday.",
+        "corrected": "We were at home yesterday.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording contains a grammatical error ('was' instead of 'were'), but the proposed correction fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T14",
+    "group": "meaning",
+    "source": "Ich vermisse meine Familie.",
+    "reference": "I miss my family.",
+    "prediction": "I visit my family.",
+    "expected": [
+      "meaning"
+    ],
+    "detected": [
+      "vocabulary"
+    ],
+    "passed": false,
+    "missing": [
+      "meaning"
+    ],
+    "unexpected": [
+      "vocabulary"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "vocabulary",
+        "original_text": "I visit my family.",
+        "corrected_text": "I miss my family.",
+        "explanation": "The student's translation uses the verb 'visit', which means to go to see someone or something, not to miss them. The correct translation should use the verb 'miss'.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "I visit my family.",
+        "corrected": "I miss my family.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'I visit my family.' does not accurately preserve the relevant meaning of the German source 'Ich vermisse meine Familie.' which means 'I miss my family.' The proposed correction 'I miss my family.' fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T15",
+    "group": "meaning",
+    "source": "Das ist verboten.",
+    "reference": "That is forbidden.",
+    "prediction": "That is allowed.",
+    "expected": [
+      "meaning"
+    ],
+    "detected": [
+      "meaning"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "meaning",
+        "original_text": "That is allowed.",
+        "corrected_text": "That is forbidden.",
+        "explanation": "The student's translation 'That is allowed.' does not preserve the meaning of the German source 'Das ist verboten.' The correct translation should be 'That is forbidden.'",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "meaning",
+        "original": "That is allowed.",
+        "corrected": "That is forbidden.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's translation 'That is allowed.' does not accurately preserve the relevant meaning of the German source 'Das ist verboten.' The proposed correction 'That is forbidden.' fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T16",
+    "group": "meaning",
+    "source": "Er hat den Zug verpasst.",
+    "reference": "He missed the train.",
+    "prediction": "He caught the train.",
+    "expected": [
+      "meaning"
+    ],
+    "detected": [],
+    "passed": false,
+    "missing": [
+      "meaning"
+    ],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [],
+    "feedback": [
+      {
+        "category": "vocabulary",
+        "original_text": "He caught the train.",
+        "corrected_text": "He missed the train.",
+        "explanation": "The student's translation changes the meaning from 'missed' to 'caught', which contradicts the original German sentence.",
+        "verified_error": false,
+        "detector": "qwen",
+        "validation_status": "rejected"
+      }
+    ],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "He caught the train.",
+        "corrected": "He missed the train.",
+        "stage": "initial_qwen",
+        "decision": "rejected",
+        "reason": "The proposed correction introduces a new error by changing the meaning from 'missed' to 'caught', which contradicts the original German sentence."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T17",
+    "group": "vocabulary",
+    "source": "Ich brauche einen Regenschirm.",
+    "reference": "I need an umbrella.",
+    "prediction": "I need a raincoat.",
+    "expected": [
+      "vocabulary"
+    ],
+    "detected": [
+      "vocabulary"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "vocabulary",
+        "original_text": "I need a raincoat.",
+        "corrected_text": "I need an umbrella.",
+        "explanation": "The student used the word 'raincoat' which is not the correct translation for 'Regenschirm' in this context. 'Regenschirm' refers to an umbrella, not a raincoat.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "I need a raincoat.",
+        "corrected": "I need an umbrella.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'I need a raincoat' does not accurately preserve the relevant meaning of the German source 'Ich brauche einen Regenschirm.' because 'Regenschirm' refers to an umbrella, not a raincoat. The proposed correction 'I need an umbrella' fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T18",
+    "group": "meaning",
+    "source": "Sie hat die Prüfung bestanden.",
+    "reference": "She passed the exam.",
+    "prediction": "She failed the exam.",
+    "expected": [
+      "meaning"
+    ],
+    "detected": [
+      "meaning"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "meaning",
+        "original_text": "She failed the exam.",
+        "corrected_text": "She passed the exam.",
+        "explanation": "The student added the word 'failed' which changes the meaning from passing to failing the exam.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "meaning",
+        "original": "She failed the exam.",
+        "corrected": "She passed the exam.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording contains a genuine translation error ('failed' instead of 'passed'), and the proposed correction fixes that error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T19",
+    "group": "numbers",
+    "source": "Ich habe drei Katzen.",
+    "reference": "I have three cats.",
+    "prediction": "I have two cats.",
+    "expected": [
+      "numbers"
+    ],
+    "detected": [
+      "numbers"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "numbers",
+        "original_text": "two",
+        "corrected_text": "three",
+        "explanation": "The German source specifies 3, but your translation says 2.",
+        "verified_error": false,
+        "detector": "rules"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "omissions",
+        "original": "two cats",
+        "corrected": "three cats",
+        "stage": "initial_qwen",
+        "decision": "duplicate_rule",
+        "reason": "Number correction already handled"
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T20",
+    "group": "numbers",
+    "source": "Das kostet fünf Euro.",
+    "reference": "It costs five euros.",
+    "prediction": "It costs fifteen euros.",
+    "expected": [
+      "numbers"
+    ],
+    "detected": [
+      "other"
+    ],
+    "passed": false,
+    "missing": [
+      "numbers"
+    ],
+    "unexpected": [
+      "other"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "other",
+        "original_text": "fifteen",
+        "corrected_text": "five",
+        "explanation": "The correct amount is five euros, not fifteen.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "other",
+        "original": "fifteen",
+        "corrected": "five",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording contains a genuine translation error ('fifteen' instead of 'five'), and the proposed correction fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T21",
+    "group": "numbers",
+    "source": "Wir haben vier Tickets gekauft.",
+    "reference": "We bought four tickets.",
+    "prediction": "We bought three tickets.",
+    "expected": [
+      "numbers"
+    ],
+    "detected": [
+      "numbers"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "numbers",
+        "original_text": "three",
+        "corrected_text": "four",
+        "explanation": "The German source specifies 4, but your translation says 3.",
+        "verified_error": false,
+        "detector": "rules"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "omissions",
+        "original": "We bought three tickets.",
+        "corrected": "We bought four tickets.",
+        "stage": "initial_qwen",
+        "decision": "duplicate_rule",
+        "reason": "Number correction already handled"
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T22",
+    "group": "meaning",
+    "source": "Ich mag keinen Kaffee.",
+    "reference": "I don't like coffee.",
+    "prediction": "I like coffee.",
+    "expected": [
+      "meaning"
+    ],
+    "detected": [
+      "meaning"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "meaning",
+        "original_text": "I like coffee.",
+        "corrected_text": "I don't like coffee.",
+        "explanation": "The German source contains a negation, but the English translation does not. This may reverse the intended meaning.",
+        "verified_error": false,
+        "detector": "rules"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "I like coffee.",
+        "corrected": "I don't like coffee.",
+        "stage": "initial_qwen",
+        "decision": "duplicate_rule",
+        "reason": "Already detected by deterministic checks"
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T23",
+    "group": "meaning",
+    "source": "Er kommt heute nicht.",
+    "reference": "He is not coming today.",
+    "prediction": "He is coming today.",
+    "expected": [
+      "meaning"
+    ],
+    "detected": [
+      "meaning"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "meaning",
+        "original_text": "He is coming today.",
+        "corrected_text": "He is not coming today.",
+        "explanation": "The German source contains a negation, but the English translation does not. This may reverse the intended meaning.",
+        "verified_error": false,
+        "detector": "rules"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "meaning",
+        "original": "He is coming today.",
+        "corrected": "He is not coming today.",
+        "stage": "initial_qwen",
+        "decision": "duplicate_rule",
+        "reason": "Already detected by deterministic checks"
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T24",
+    "group": "omissions",
+    "source": "Ich habe gestern Pizza gegessen.",
+    "reference": "I ate pizza yesterday.",
+    "prediction": "I ate pizza.",
+    "expected": [
+      "omissions"
+    ],
+    "detected": [
+      "meaning"
+    ],
+    "passed": false,
+    "missing": [
+      "omissions"
+    ],
+    "unexpected": [
+      "meaning"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "meaning",
+        "original_text": "I ate pizza.",
+        "corrected_text": "I ate pizza yesterday.",
+        "explanation": "The reference translation explicitly states the time ('yesterday') which is missing from the student's translation.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "meaning",
+        "original": "I ate pizza.",
+        "corrected": "I ate pizza yesterday.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording does not accurately preserve the relevant meaning of the German source ('Ich habe gestern Pizza gegessen.') as it omits the time ('yesterday') which is present in the reference translation ('I ate pizza yesterday'). The proposed correction fixes this error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T25",
+    "group": "omissions",
+    "source": "Sie hat einen kleinen Hund.",
+    "reference": "She has a small dog.",
+    "prediction": "She has a dog.",
+    "expected": [
+      "omissions"
+    ],
+    "detected": [
+      "omissions"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "omissions",
+        "original_text": "She has a dog.",
+        "corrected_text": "She has a small dog.",
+        "explanation": "The reference translation specifies that the dog is 'small', which is missing in the student's translation.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "omissions",
+        "original": "She has a dog.",
+        "corrected": "She has a small dog.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording omits the size descriptor 'small', which is fixed by the proposed correction. The reference translation accurately preserves the relevant meaning of the German source."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T26",
+    "group": "additions",
+    "source": "Er trinkt Wasser.",
+    "reference": "He drinks water.",
+    "prediction": "He drinks cold water.",
+    "expected": [
+      "additions"
+    ],
+    "detected": [
+      "vocabulary"
+    ],
+    "passed": false,
+    "missing": [
+      "additions"
+    ],
+    "unexpected": [
+      "vocabulary"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "vocabulary",
+        "original_text": "cold water",
+        "corrected_text": "water",
+        "explanation": "The reference translation specifies 'water' without any qualifiers. 'Cold water' is not necessary and changes the meaning.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "vocabulary",
+        "original": "cold water",
+        "corrected": "water",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'He drinks cold water' accurately preserves the meaning of the German source 'Er trinkt Wasser.' The proposed correction 'He drinks water' fixes the error of adding the qualifier 'cold' without altering the core meaning."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T27",
+    "group": "omissions",
+    "source": "Wir treffen uns morgen früh.",
+    "reference": "We will meet tomorrow morning.",
+    "prediction": "We will meet tomorrow.",
+    "expected": [
+      "omissions"
+    ],
+    "detected": [
+      "conjugation"
+    ],
+    "passed": false,
+    "missing": [
+      "omissions"
+    ],
+    "unexpected": [
+      "conjugation"
+    ],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "conjugation",
+        "original_text": "We will meet tomorrow.",
+        "corrected_text": "We will meet tomorrow morning.",
+        "explanation": "The student's translation uses 'morning' instead of 'morning' to match the reference, but the verb 'will meet' is correctly conjugated. The correct translation should include 'morning' to preserve the exact timing.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "conjugation",
+        "original": "We will meet tomorrow.",
+        "corrected": "We will meet tomorrow morning.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording 'We will meet tomorrow.' accurately preserves the relevant meaning of the German source 'Wir treffen uns morgen früh.' (We will meet tomorrow morning). The proposed correction 'We will meet tomorrow morning.' fixes a genuine error in the student's translation by adding the word 'morning' to match the reference, which preserves the exact timing."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T28",
+    "group": "multiple",
+    "source": "Ich habe gestern drei Bücher gekauft.",
+    "reference": "I bought three books yesterday.",
+    "prediction": "I buy two books yesterday.",
+    "expected": [
+      "grammar",
+      "numbers"
+    ],
+    "detected": [
+      "numbers",
+      "grammar"
+    ],
+    "passed": true,
+    "missing": [],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "numbers",
+        "original_text": "two",
+        "corrected_text": "three",
+        "explanation": "The German source specifies 3, but your translation says 2.",
+        "verified_error": false,
+        "detector": "rules"
+      },
+      {
+        "category": "grammar",
+        "original_text": "I buy two books yesterday.",
+        "corrected_text": "I bought two books yesterday.",
+        "explanation": "The correct tense is 'bought' because the sentence is in the past tense. 'Buy' should be changed to 'bought' to match the past tense of the verb.",
+        "verified_error": false,
+        "detector": "qwen"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "I buy two books yesterday.",
+        "corrected": "I bought two books yesterday.",
+        "stage": "initial_qwen",
+        "decision": "accepted",
+        "reason": "The student's original wording contains a genuine grammatical error ('buy' instead of 'bought'), and the proposed correction fixes that error."
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T29",
+    "group": "multiple",
+    "source": "Sie hat gestern nicht gearbeitet.",
+    "reference": "She did not work yesterday.",
+    "prediction": "She work yesterday.",
+    "expected": [
+      "grammar",
+      "meaning"
+    ],
+    "detected": [
+      "meaning"
+    ],
+    "passed": false,
+    "missing": [
+      "grammar"
+    ],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [
+      {
+        "category": "meaning",
+        "original_text": "She work yesterday.",
+        "corrected_text": "She did not work yesterday.",
+        "explanation": "The German source contains a negation, but the English translation does not. This may reverse the intended meaning.",
+        "verified_error": false,
+        "detector": "rules"
+      }
+    ],
+    "feedback": [],
+    "diagnostics": [
+      {
+        "category": "grammar",
+        "original": "She work yesterday.",
+        "corrected": "She did not work yesterday.",
+        "stage": "initial_qwen",
+        "decision": "duplicate_rule",
+        "reason": "Already detected by deterministic checks"
+      }
+    ],
+    "warning": null,
+    "error": null
+  },
+  {
+    "id": "T30",
+    "group": "multiple",
+    "source": "Obwohl es regnete, gingen wir spazieren.",
+    "reference": "Although it was raining, we went for a walk.",
+    "prediction": "In case it is not raining, we are going to walk.",
+    "expected": [
+      "meaning",
+      "grammar"
+    ],
+    "detected": [],
+    "passed": false,
+    "missing": [
+      "grammar",
+      "meaning"
+    ],
+    "unexpected": [],
+    "duplicate_count": 0,
+    "feedback_on_correct": false,
+    "mistakes": [],
+    "feedback": [
+      {
+        "category": "meaning",
+        "original_text": "In case it is not raining, we are going to walk.",
+        "corrected_text": "Although it was raining, we went for a walk.",
+        "explanation": "The student added a condition ('In case it is not raining') that is not present in the German source. The correct translation should maintain the original meaning of the sentence.",
+        "verified_error": false,
+        "detector": "qwen",
+        "validation_status": "unverified"
+      },
+      {
+        "category": "meaning",
+        "original_text": "In case it is not raining",
+        "corrected_text": "Although it was raining",
+        "explanation": "The student added a condition ('In case it is not raining') that is not present in the German source. The correct translation should maintain the original meaning of the sentence.",
+        "verified_error": false,
+        "detector": "qwen",
+        "validation_status": "rejected"
+      }
+    ],
+    "diagnostics": [
+      {
+        "category": "meaning",
+        "original": "In case it is not raining, we are going to walk.",
+        "corrected": "Although it was raining, we went for a walk.",
+        "stage": "initial_qwen",
+        "decision": "too_broad",
+        "reason": ""
+      },
+      {
+        "category": "meaning",
+        "original": "In case it is not raining",
+        "corrected": "Although it was raining",
+        "stage": "extracted_qwen",
+        "decision": "rejected",
+        "reason": "The proposed correction introduces a new condition ('In case it is not raining') that is not present in the German source and changes the meaning from 'Although it was raining' to 'Although it is not raining'."
+      }
+    ],
+    "warning": null,
+    "error": null
+  }
+]
