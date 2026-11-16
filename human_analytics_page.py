@@ -1,6 +1,7 @@
 
 """Streamlit dashboard for TransistorAI human evaluation."""
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -12,11 +13,9 @@ from evaluation.day16_analyze_human_agreement import (
     model_preferences,
     shared_subset_coverage,
 )
-from evaluation.day17_compare_human_metrics import (
-    build_sentence_metrics,
-    compare_human_metrics,
-    summarize,
-)
+from pathlib import Path
+
+DAY19_RESULTS = Path("results/day19_human_metrics")
 
 
 @st.cache_data(ttl=60, show_spinner="Loading evaluation analytics...")
@@ -31,19 +30,30 @@ def load_analytics():
     preferences = model_preferences(votes)
     coverage = shared_subset_coverage(votes, indexed)
 
-    # Sentence metrics are deterministic for the frozen dataset.
-    scores = build_sentence_metrics(dataset)
-    comparisons = compare_human_metrics(scores, votes)
-    metric_summary = summarize(comparisons)
+    # Frozen Day 19 evaluation snapshot.
+    # Live voting statistics remain independent.
+    scores = pd.read_csv(
+        DAY19_RESULTS / "sentence_level_metrics.csv"
+    )
+
+    comparisons = pd.read_csv(
+        DAY19_RESULTS / "human_metric_comparison.csv"
+    )
+
+    metric_summary = pd.read_csv(
+        DAY19_RESULTS / "metric_agreement_summary.csv"
+    )
 
     return (
         dataset, votes, agreement,
-        preferences, coverage, metric_summary,
+        preferences, coverage, metric_summary, scores,
     )
 
 
 def render_human_analytics_page():
     st.title("📊 Human Evaluation Analytics")
+
+    # Disable mouse-wheel zoom on all Altair/Vega-Lite charts.
 
     st.warning(
         "Demo mode: current votes were submitted randomly "
@@ -57,9 +67,9 @@ def render_human_analytics_page():
 
     try:
         (
-            dataset, votes, agreement,
-            preferences, coverage, metric_summary,
-        ) = load_analytics()
+        dataset, votes, agreement,
+        preferences, coverage, metric_summary, scores,
+    ) = load_analytics()
     except Exception as exc:
         st.error(f"Unable to load analytics: {exc}")
         return
@@ -176,7 +186,7 @@ def render_human_analytics_page():
         "the models producing the selected translation."
     )
 
-    
+
     # ============================================================
     # MODEL PREFERENCES — DOMAIN FILTERING AND OVERALL TOTALS
     # ============================================================
@@ -214,7 +224,7 @@ def render_human_analytics_page():
         )
 
 
-        
+
     # Descriptive labels for the four translation models.
     model_labels = {
         "E0": "E0 — Baseline NMT",
@@ -246,6 +256,80 @@ def render_human_analytics_page():
 
     st.divider()
 
+    # ============================================================
+    # DAY 19 — MODEL PERFORMANCE
+    # ============================================================
+
+    st.subheader("Model performance by domain")
+
+    st.caption(
+        "Frozen Day 19 evaluation: 40 unique sentences, "
+        "160 model–sentence scores. Values are means of "
+        "sentence-level metrics, not corpus-level scores."
+    )
+
+    performance = scores.copy()
+
+    if domain != "overall":
+        performance = performance[
+            performance["domain"] == domain
+        ]
+
+    metric_choice = st.selectbox(
+        "Automatic evaluation metric",
+        ["BLEU", "chrF", "COMET"],
+        key="day19_performance_metric",
+    )
+
+    metric_column = {
+        "BLEU": "bleu",
+        "chrF": "chrf",
+        "COMET": "comet",
+    }[metric_choice]
+
+    performance_chart = performance.pivot_table(
+        index="model",
+        columns="domain",
+        values=metric_column,
+        aggfunc="mean",
+    ).reindex(["E0", "E1", "E2", "E3"])
+
+    chart_data = (
+        performance_chart
+        .reset_index()
+        .melt(
+            id_vars="model",
+            var_name="domain",
+            value_name="score",
+        )
+    )
+
+    chart = (
+        alt.Chart(chart_data)
+        .mark_bar()
+        .encode(
+            x=alt.X("model:N", title="Translation model"),
+            xOffset="domain:N",
+            y=alt.Y("score:Q", title=f"Mean sentence-level {metric_choice}"),
+            color="domain:N",
+        )
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
+    st.dataframe(
+        performance_chart.round(4),
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    st.caption(
+    "Frozen Day 19 evaluation snapshot: 44 votes, "
+    "40 unique sentences. New votes are not included "
+    "until the evaluation is recomputed."
+)
+
     st.subheader("Human vs. automatic metrics")
 
     selected_metrics = metric_summary[
@@ -272,6 +356,7 @@ def render_human_analytics_page():
         st.bar_chart(
             chart,
             y_label="Human–metric agreement (%)",
+            stack=False,
         )
 
         st.dataframe(
@@ -294,6 +379,249 @@ def render_human_analytics_page():
         "agreement divides credit across tied winners. "
         "BLEU and chrF are sentence-level scores."
     )
+
+    st.divider()
+
+    # ============================================================
+    # DAY 19 — HUMAN/METRIC AGREEMENT PATTERNS
+    # ============================================================
+
+    st.subheader("Human–metric agreement patterns")
+
+    st.caption(
+        "Frozen Day 19 snapshot: 44 human votes across "
+        "40 unique sentences. Each vote is counted once."
+    )
+
+    pattern_data = pd.read_csv(
+        DAY19_RESULTS / "human_metric_comparison.csv"
+    )
+
+    if domain != "overall":
+        pattern_data = pattern_data[
+            pattern_data["domain"] == domain
+        ]
+
+    if not pattern_data.empty:
+        patterns = pattern_data.pivot(
+            index=["evaluation_id", "participant_id", "domain"],
+            columns="metric",
+            values="strict_agreement",
+        ).reset_index()
+
+        def classify_pattern(row):
+            matched = [
+                metric.upper()
+                for metric in ["bleu", "chrf", "comet"]
+                if row[metric] == 1
+            ]
+            return " + ".join(matched) if matched else "None"
+
+        patterns["pattern"] = patterns.apply(
+            classify_pattern,
+            axis=1,
+        )
+
+        counts = (
+            patterns["pattern"]
+            .value_counts()
+            .rename_axis("Agreement pattern")
+            .reset_index(name="Votes")
+        )
+
+        st.bar_chart(
+            counts.set_index("Agreement pattern"),
+            horizontal=True,
+            x_label="Number of human votes",
+            y_label="Agreement pattern",
+        )
+
+        st.dataframe(
+            counts,
+            hide_index=True,
+            use_container_width=True,
+        )
+
+        none_count = int(
+            (patterns["pattern"] == "None").sum()
+        )
+
+        total = len(patterns)
+
+        st.metric(
+            "Votes where no metric agreed",
+            f"{none_count}/{total}",
+            f"{none_count / total:.1%}" if total else None,
+            delta_color="off",
+        )
+
+    st.divider()
+
+        # ============================================================
+        # DAY 20 — INTERACTIVE TRANSLATION CASE STUDIES
+        # ============================================================
+
+    st.subheader("Interactive Translation Case Studies")
+
+    st.caption(
+        "Explore the 40 sentences evaluated on Day 19. "
+        "Compare E0–E3 translations, automatic metrics, "
+        "and human preferences."
+    )
+
+    # Use the frozen Day 19 evaluation snapshot.
+    case_scores = scores.copy()
+
+    if domain != "overall":
+        case_scores = case_scores[
+            case_scores["domain"] == domain
+        ]
+
+    available_ids = sorted(
+        case_scores["evaluation_id"].unique()
+    )
+
+    if available_ids:
+
+        selected_id = st.selectbox(
+            "Select evaluation sentence",
+            available_ids,
+            key="day20_case_study_id",
+        )
+
+        case = case_scores[
+            case_scores["evaluation_id"] == selected_id
+        ].copy()
+
+        case = (
+            case.set_index("model")
+            .reindex(["E0", "E1", "E2", "E3"])
+            .reset_index()
+        )
+
+        first = case.iloc[0]
+
+        st.markdown(
+            f"**Domain:** {first['domain'].capitalize()}"
+        )
+
+        st.markdown("**German source**")
+        st.info(first["source"])
+
+        st.markdown("**English reference**")
+        st.info(first["reference"])
+
+        st.markdown("#### Model translations")
+
+        display = case[
+            ["model", "translation", "bleu", "chrf", "comet"]
+        ].copy()
+
+        display.columns = [
+            "Model", "Translation", "BLEU", "chrF", "COMET"
+        ]
+
+        st.dataframe(
+            display,
+            hide_index=True,
+            use_container_width=True,
+            column_config={
+                "Model": st.column_config.TextColumn(
+                    "Model", width="small"
+                ),
+                "Translation": st.column_config.TextColumn(
+                    "Translation", width="large"
+                ),
+                "BLEU": st.column_config.NumberColumn(
+                    "BLEU", format="%.2f", width="small"
+                ),
+                "chrF": st.column_config.NumberColumn(
+                    "chrF", format="%.2f", width="small"
+                ),
+                "COMET": st.column_config.NumberColumn(
+                    "COMET", format="%.4f", width="small"
+                ),
+            },
+        )
+
+        # Automatic metric winners.
+        st.markdown("#### Automatic metric winners")
+
+        winner_cols = st.columns(3)
+
+        for col, metric, label in zip(
+            winner_cols,
+            ["bleu", "chrf", "comet"],
+            ["BLEU", "chrF", "COMET"],
+        ):
+            best_score = case[metric].max()
+
+            winners = case.loc[
+                case[metric] == best_score, "model"
+            ].tolist()
+
+            col.metric(
+                label,
+                ", ".join(winners),
+            )
+
+        # Human preferences from the frozen Day 19 snapshot.
+        comparisons = pd.read_csv(
+            DAY19_RESULTS / "human_metric_comparison.csv"
+        )
+
+        human_case = comparisons[
+            (comparisons["evaluation_id"] == selected_id)
+            & (comparisons["metric"] == "bleu")
+        ]
+
+        st.markdown("#### Human preferences")
+
+        if not human_case.empty:
+
+            st.caption(
+                f"{len(human_case)} human vote(s) "
+                "recorded for this sentence."
+            )
+
+            for vote_number, (_, vote) in enumerate(
+                human_case.iterrows(), start=1
+            ):
+                st.markdown(
+                    f"**Vote {vote_number}:** "
+                    f"{vote['human_selected_models']}"
+                )
+
+                st.write(
+                    vote["human_selected_text"]
+                )
+
+        else:
+            st.info(
+                "No human preference recorded "
+                "for this sentence."
+            )
+
+        # Display metric scores as a comparison chart.
+        st.markdown("#### Metric comparison")
+
+        chart_metric = st.selectbox(
+            "Select metric to compare",
+            ["BLEU", "chrF", "COMET"],
+            key="day20_case_metric",
+        )
+
+        metric_column = {
+            "BLEU": "bleu",
+            "chrF": "chrf",
+            "COMET": "comet",
+        }[chart_metric]
+
+        st.bar_chart(
+            case.set_index("model")[metric_column],
+            x_label="Translation model",
+            y_label=chart_metric,
+        )
 
     st.divider()
 
