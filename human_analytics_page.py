@@ -1,6 +1,6 @@
 
 """Streamlit dashboard for TransistorAI human evaluation."""
-
+import json
 import altair as alt
 import pandas as pd
 import streamlit as st
@@ -15,8 +15,7 @@ from evaluation.day16_analyze_human_agreement import (
 )
 from pathlib import Path
 
-DAY19_RESULTS = Path("results/day19_human_metrics")
-
+DAY22_RESULTS = Path("results/day22_human_metrics")
 
 @st.cache_data(ttl=60, show_spinner="Loading evaluation analytics...")
 def load_analytics():
@@ -30,18 +29,18 @@ def load_analytics():
     preferences = model_preferences(votes)
     coverage = shared_subset_coverage(votes, indexed)
 
-    # Frozen Day 19 evaluation snapshot.
+    # Frozen Day 22 evaluation snapshot.
     # Live voting statistics remain independent.
     scores = pd.read_csv(
-        DAY19_RESULTS / "sentence_level_metrics.csv"
+        DAY22_RESULTS / "sentence_level_metrics.csv"
     )
 
     comparisons = pd.read_csv(
-        DAY19_RESULTS / "human_metric_comparison.csv"
+        DAY22_RESULTS / "human_metric_comparison.csv"
     )
 
     metric_summary = pd.read_csv(
-        DAY19_RESULTS / "metric_agreement_summary.csv"
+        DAY22_RESULTS / "metric_agreement_summary.csv"
     )
 
     return (
@@ -55,11 +54,12 @@ def render_human_analytics_page():
 
     # Disable mouse-wheel zoom on all Altair/Vega-Lite charts.
 
-    st.warning(
-        "Demo mode: current votes were submitted randomly "
-        "for testing. Agreement and preference statistics "
-        "are illustrative, not research conclusions."
-    )
+    st.info(
+    "Final human evaluation: 200 sentences evaluated, "
+    "204 saved votes from 3 participants. "
+    "Results are exploratory because one participant "
+    "contributed 200 of the 204 votes."
+)
 
     if st.button("🔄 Refresh analytics"):
         load_analytics.clear()
@@ -181,9 +181,9 @@ def render_human_analytics_page():
     st.subheader("Model preferences")
 
     st.caption(
-        "Identical translations may represent multiple models. "
-        "Fractional credit divides one vote equally among "
-        "the models producing the selected translation."
+         "Exclusive model selections from the currently saved votes. "
+        "Tied selections are excluded. The chart updates when "
+        "new votes are saved."
     )
 
 
@@ -254,18 +254,77 @@ def render_human_analytics_page():
     )
 
 
+    # ============================================================
+    # DAY 22 — EXCLUSIVE MODEL PREFERENCES BY DOMAIN
+    # ============================================================
+
+    st.markdown("#### Exclusive model preferences by domain")
+
+    exclusive_records = []
+
+    for _, vote in votes.iterrows():
+        selected = json.loads(vote["selected_models"])
+
+        if len(selected) == 1:
+            exclusive_records.append({
+                "domain": vote["domain"],
+                "model": selected[0],
+            })
+
+    exclusive_df = pd.DataFrame(
+        exclusive_records,
+        columns=["domain", "model"],
+    )
+
+    if not exclusive_df.empty:
+        exclusive_counts = (
+            exclusive_df.groupby(["model", "domain"])
+            .size()
+            .unstack(fill_value=0)
+            .reindex(["E0", "E1", "E2", "E3"], fill_value=0)
+            .reindex(
+                columns=["general", "technical"],
+                fill_value=0,
+            )
+        )
+
+        st.bar_chart(
+            exclusive_counts,
+            x_label="Translation model",
+            y_label="Exclusive human selections",
+            stack=False,
+        )
+
+        st.dataframe(
+            exclusive_counts.rename(
+                columns={
+                    "general": "General",
+                    "technical": "Technical",
+                }
+            ),
+            use_container_width=True,
+        )
+
+        st.caption(
+            "E3 (Qwen) received the most exclusive human "
+            "selections in both domains in the completed "
+            "Day 22 evaluation. Tied selections are excluded."
+        )
+
+
     st.divider()
 
     # ============================================================
-    # DAY 19 — MODEL PERFORMANCE
+    # DAY 22 — MODEL PERFORMANCE
     # ============================================================
 
     st.subheader("Model performance by domain")
 
     st.caption(
-        "Frozen Day 19 evaluation: 40 unique sentences, "
-        "160 model–sentence scores. Values are means of "
-        "sentence-level metrics, not corpus-level scores."
+        "Final Day 22 evaluation: 200 unique sentences "
+        "(100 general, 100 technical), with 800 model–sentence "
+        "scores. Values are means of sentence-level metrics, "
+        "not corpus-level scores."
     )
 
     performance = scores.copy()
@@ -278,7 +337,7 @@ def render_human_analytics_page():
     metric_choice = st.selectbox(
         "Automatic evaluation metric",
         ["BLEU", "chrF", "COMET"],
-        key="day19_performance_metric",
+        key="day22_performance_metric",
     )
 
     metric_column = {
@@ -325,9 +384,10 @@ def render_human_analytics_page():
     st.divider()
 
     st.caption(
-    "Frozen Day 19 evaluation snapshot: 44 votes, "
-    "40 unique sentences. New votes are not included "
-    "until the evaluation is recomputed."
+    "Frozen Day 22 evaluation snapshot: 204 votes, "
+    "200 unique sentences, and 800 model–sentence scores. "
+    "Live votes may change, but these metric comparisons "
+    "remain fixed until the analysis is recomputed."
 )
 
     st.subheader("Human vs. automatic metrics")
@@ -374,27 +434,27 @@ def render_human_analytics_page():
         )
 
     st.caption(
-        "Strict agreement credits a human choice if it matches "
-        "any highest-scoring distinct translation. Fractional "
-        "agreement divides credit across tied winners. "
-        "BLEU and chrF are sentence-level scores."
+         "Final Day 22 evaluation snapshot: 204 votes from "
+        "3 participants across 200 unique sentences. "
+        "One participant contributed 200 votes."
     )
 
     st.divider()
 
     # ============================================================
-    # DAY 19 — HUMAN/METRIC AGREEMENT PATTERNS
+    # DAY 22 — HUMAN/METRIC AGREEMENT PATTERNS
     # ============================================================
 
     st.subheader("Human–metric agreement patterns")
 
     st.caption(
-        "Frozen Day 19 snapshot: 44 human votes across "
-        "40 unique sentences. Each vote is counted once."
+         "Final Day 22 evaluation: 204 human votes across "
+        "200 unique sentences. Each vote is counted once "
+        "per metric."
     )
 
     pattern_data = pd.read_csv(
-        DAY19_RESULTS / "human_metric_comparison.csv"
+        DAY22_RESULTS / "human_metric_comparison.csv"
     )
 
     if domain != "overall":
@@ -464,9 +524,9 @@ def render_human_analytics_page():
     st.subheader("Interactive Translation Case Studies")
 
     st.caption(
-        "Explore the 40 sentences evaluated on Day 19. "
-        "Compare E0–E3 translations, automatic metrics, "
-        "and human preferences."
+        "Explore all 200 sentences from the completed Day 22 "
+        "human evaluation. Compare E0–E3 translations, "
+        "BLEU, chrF, COMET, and human preferences."
     )
 
     # Use the frozen Day 19 evaluation snapshot.
@@ -567,7 +627,7 @@ def render_human_analytics_page():
 
         # Human preferences from the frozen Day 19 snapshot.
         comparisons = pd.read_csv(
-            DAY19_RESULTS / "human_metric_comparison.csv"
+            DAY22_RESULTS / "human_metric_comparison.csv"
         )
 
         human_case = comparisons[
@@ -640,7 +700,12 @@ def render_human_analytics_page():
             - **Metric agreement:** Whether the human-selected
               translation is among the highest-scoring distinct
               translations for that sentence.
-            - **Limitations:** Small sample sizes, repeated votes
-              on the same sentences, and demo votes submitted randomly.
+            - **Limitations:** One participant contributed 200 of the
+            204 votes, so the results primarily reflect a single
+            evaluator's preferences. Only four additional votes
+            were collected from two other participants.
+            - **Evaluation snapshot:** Automatic metric comparisons
+            use the frozen Day 22 results. Live voting statistics
+            may differ if additional votes are submitted.
             """
         )

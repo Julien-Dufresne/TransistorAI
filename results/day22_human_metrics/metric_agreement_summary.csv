@@ -1,0 +1,10 @@
+metric,domain,votes,unique_sentences,strict_agreement_percent,fractional_agreement_percent,metric_tied_votes
+bleu,overall,204,200,33.82,32.6,13
+bleu,general,104,100,33.65,32.69,7
+bleu,technical,100,100,34.0,32.5,6
+chrf,overall,204,200,28.92,28.43,4
+chrf,general,104,100,26.92,26.92,1
+chrf,technical,100,100,31.0,30.0,3
+comet,overall,204,200,32.35,32.35,0
+comet,general,104,100,34.62,34.62,0
+comet,technical,100,100,30.0,30.0,0

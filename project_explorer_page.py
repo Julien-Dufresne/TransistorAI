@@ -20,16 +20,96 @@ def render_project_explorer_page():
         """
     )
     (
-        structure_tab, training_tab, metrics_tab, data_tab, models_tab, experiments_tab, ) = st.tabs([
-            "🏗️ Project Structure",
-            "🏋️ Training Pipeline",
-            "📊 Evaluation Metrics",
-            "🗂️ Data & Cleaning",
-            "🧠 Models",
-            "🔬 Experiments & Results",
-        ])
+        overview_tab,
+        models_tab, 
+        structure_tab, 
+        training_tab, 
+        metrics_tab, 
+        data_tab, 
+        results_tab, 
+    ) = st.tabs([
+        "🏗️ Project Overview",
+        "🧠 Models and Experiments",
+        "🏗️ Project Structure",
+        "🏋️ Training Pipeline",
+        "📊 Evaluation Metrics",
+        "🗂️ Data & Cleaning",
+        "🔬 Results",
+    ])
 
+    # ============================================================
+    # TAB — PROJECT OVERVIEW
+    # ============================================================
 
+    with overview_tab:
+
+        st.header("📖 Project Transistor**AI**'s Overview")
+
+        st.markdown("""
+        ### What is Transistor**AI**?
+
+        TransistorAI is a German-to-English machine translation
+        project comparing traditional Neural Machine Translation
+        (NMT) models with a Large Language Model (LLM).
+
+        The project investigates whether domain-specific
+        fine-tuning improves technical translation quality
+        while preserving general-language performance.
+
+        ### 🎯 Research Question
+
+        **Can domain-specific fine-tuning improve technical
+        translation quality without sacrificing general-language
+        translation performance?**
+
+        ### 🧠 The Four Models
+
+        | Model | Description |
+        |---|---|
+        | **E0** | Pretrained MarianMT baseline (Helsinki-NLP/opus-mt-de-en) |
+        | **E1** | MarianMT initialized from Helsinki-NLP and fine-tuned on technical KDE4 data |
+        | **E2** | 	MarianMT initialized from Helsinki-NLP and fine-tuned on mixed KDE4 + Tatoeba/OPUS data |
+        | **E3** | Qwen2.5-3B-Instruct LLM baseline (no fine-tuning) |
+
+        ### 🗂️ Datasets
+
+        Two German-English parallel datasets are used:
+
+        - **KDE4:** Technical software-related translations.
+        - **Tatoeba/OPUS:** General-language translations.
+
+        Each dataset is divided into training, validation,
+        and test sets.
+
+        ### 📊 Evaluation
+
+        Model performance is evaluated using a combinaison of automatic metrics and human preferences:
+
+        - **BLEU metric:** Word and phrase overlap with references.
+        - **chrF metric:** Character-level similarity.
+        - **COMET metric:** Learned translation-quality estimation.
+        - **Human Preferences:** Direct comparison of model outputs.
+
+        Additional checks examine terminology, numbers,
+        placeholders, formatting, and translation errors.
+
+        
+        ### 💻 Interactive Translator and Learning Platform
+
+        TransistorAI includes a Streamlit application with:
+
+        **TransistorAnalytics**
+        - Project Explorer
+        - Human Evaluation Analytics
+
+        **TransistorInteraction**
+        - **Translate:** Use the four different models to translate German sentences
+        - **Test Yourself:** Translate and analyze your mistakes
+        - **Daily Vocabulary:** Learn 5 new words a day
+        - **Human Preference Evaluation:** Select the best translation among model outputs
+
+        
+        """)
 
     # ============================================================
     # TAB — PROJECT STRUCTURE
@@ -608,17 +688,7 @@ with (run_dir / "train_metrics.json").open(
                 st.info(f"Why it matters: {step['why']}")
 
 
-        st.subheader("Training Workflow")
-
-        for step in steps:
-            with st.expander(step["title"]):
-                st.markdown(f"**Objective:** {step['purpose']}")
-                st.markdown(step["explanation"])
-
-                st.markdown("**Relevant Python code**")
-                st.code(step["code"], language="python")
-
-                st.info(f"Why it matters: {step['why']}")
+    
 
         st.divider()
         st.subheader("Training Configuration")
@@ -1117,7 +1187,7 @@ with (run_dir / "train_metrics.json").open(
                 "Model": "E0",
                 "Name": "Baseline NMT",
                 "Architecture": "MarianMT",
-                "Training": "Pretrained",
+                "Training": "Pretrained - Helsinki-NLP/opus-mt-de-en model",
                 "Data": "Original pretrained model",
             },
             {
@@ -1125,14 +1195,14 @@ with (run_dir / "train_metrics.json").open(
                 "Name": "Technical NMT",
                 "Architecture": "MarianMT",
                 "Training": "Fine-tuned",
-                "Data": "KDE4 technical",
+                "Data": "KDE4 technical data",
             },
             {
                 "Model": "E2",
-                "Name": "Mixed NMT",
+                "Name": "Mixed Technical/General NMT",
                 "Architecture": "MarianMT",
                 "Training": "Fine-tuned",
-                "Data": "Technical + General",
+                "Data": "KDE4 technical data + Tatoeba/OPUS general data",
             },
             {
                 "Model": "E3",
@@ -1149,15 +1219,12 @@ with (run_dir / "train_metrics.json").open(
             use_container_width=True,
         )
 
+        
         st.divider()
         st.subheader("Understanding the Architectures")
 
-        nmt_arch, llm_arch = st.tabs([
-            "MarianMT — Encoder–Decoder",
-            "Qwen — Decoder-only LLM",
-        ])
+        with st.expander("🧠 MarianMT — Encoder–Decoder", expanded=False):
 
-        with nmt_arch:
             st.markdown("""
             ### MarianMT
 
@@ -1185,7 +1252,9 @@ with (run_dir / "train_metrics.json").open(
             The difference is their fine-tuning history.
             """)
 
-        with llm_arch:
+
+        with st.expander("🤖 Qwen2.5-3B-Instruct — Decoder-only LLM", expanded=False):
+
             st.markdown("""
             ### Qwen2.5-3B-Instruct
 
@@ -1214,6 +1283,7 @@ with (run_dir / "train_metrics.json").open(
             The model is used as a prompted baseline,
             without additional fine-tuning in this project.
             """)
+
 
         st.divider()
         st.subheader("The Four Experiments")
@@ -1249,11 +1319,11 @@ with (run_dir / "train_metrics.json").open(
             of general-language performance?
             """)
 
-        with st.expander("E2 — Mixed Fine-tuning"):
+        with st.expander("E2 — Mixed Technical/GeneralFine-tuning"):
             st.markdown("""
             **Base model:** E0 MarianMT
 
-            **Fine-tuning data:** Technical and general translations.
+            **Fine-tuning data:** KDE4 technical data + Tatoeba/OPUS general data translations.
 
             E2 investigates whether training with both domains
             can improve technical performance while preserving
@@ -1287,22 +1357,30 @@ with (run_dir / "train_metrics.json").open(
             """)
 
         st.divider()
-        st.subheader("Fine-tuning Configuration")
+        st.subheader("Fine-tuning Configuration for E1 and E2")
 
-        config_df = pd.DataFrame([
-            {"Parameter": "Learning rate", "Value": "2e-5"},
-            {"Parameter": "Batch size per device", "Value": "4"},
-            {"Parameter": "Gradient accumulation", "Value": "2"},
-            {"Parameter": "Epochs", "Value": "3"},
-            {"Parameter": "Maximum sequence length", "Value": "128"},
-            {"Parameter": "Random seed", "Value": "42"},
-        ])
+        with st.expander("View configuration details"):
 
-        st.dataframe(
-            config_df,
-            hide_index=True,
-            use_container_width=True,
-        )
+            st.markdown("""
+            The following configuration was used for both E1
+            and E2 fine-tuning experiments.
+
+            """)
+            
+            config_df = pd.DataFrame([
+                {"Parameter": "Learning rate", "Value": "2e-5"},
+                {"Parameter": "Batch size per device", "Value": "4"},
+                {"Parameter": "Gradient accumulation", "Value": "2"},
+                {"Parameter": "Epochs", "Value": "3"},
+                {"Parameter": "Maximum sequence length", "Value": "128"},
+                {"Parameter": "Random seed", "Value": "42"},
+            ])
+
+            st.dataframe(
+                config_df,
+                hide_index=True,
+                use_container_width=True,
+            )
 
         st.caption(
             "Recorded MarianMT fine-tuning configuration. "
@@ -1312,18 +1390,191 @@ with (run_dir / "train_metrics.json").open(
 
 
     
-    with experiments_tab:
-        st.header("🔬 Experiments & Results")
+    with results_tab:
+        st.header("🔬 Results & Conclusions")
 
-        st.markdown("""
-        TransistorAI evaluates four translation systems across
-        technical and general German-to-English translation.
+        # MAIN FINDINGS
+        with st.container(border=True):
+            st.subheader("🔍 Main Findings")
 
-        The goal is to understand how fine-tuning changes
-        translation performance and how a general-purpose
-        LLM compares with specialized NMT systems.
-        """)
+            st.markdown("""
+            **E0 — Pretrained MarianMT Baseline**
 
+            The original Helsinki-NLP model achieved the strongest
+            general-domain BLEU and chrF scores among the four systems.
+            However, it performed less well on technical translations
+            than the fine-tuned MarianMT models.
+
+            **E1 — Technical Fine-tuning**
+
+            Fine-tuning on KDE4 technical data improved technical
+            translation quality, increasing BLEU from **35.11 to 40.51**.
+
+            However, general-domain BLEU decreased from **40.41
+            to 30.68**, demonstrating a substantial domain trade-off.
+
+            **E2 — Mixed-domain Fine-tuning**
+
+            Combining technical and general training data produced
+            a more balanced model.
+
+            E2 achieved **39.89 BLEU on technical data** and
+            **35.65 BLEU on general data**, preserving most of
+            E1's technical improvement while recovering some
+            general-language performance.
+
+            **E3 — Qwen LLM Baseline**
+
+            Qwen demonstrated that a general-purpose LLM can
+            perform German-to-English translation without additional
+            project-specific fine-tuning.
+
+            However, its BLEU scores were lower than those of the
+            MarianMT models, and some technical translations
+            contained untranslated German text.
+
+            **Human Evaluation — Day 22**
+
+            The completed evaluation covered **200 German sentences**
+            (100 general and 100 technical), with **204 votes**
+            from three participants.
+
+            **E3 (Qwen) received the most exclusive human selections**
+            in both domains:
+
+            - General: E3 received 42 selections.
+            - Technical: E3 received 33 selections.
+
+            This contrasts with the automatic evaluation, where
+            E0 achieved the highest general-domain scores and
+            E1 achieved the highest technical-domain scores
+            on the full test sets.
+
+            **Human–metric strict agreement:**
+
+            - BLEU: 33.82%
+            - chrF: 28.92%
+            - COMET: 32.35%
+
+            These findings suggest that human preferences and
+            reference-based automatic metrics capture different
+            aspects of translation quality.
+
+            **Important limitation:** One participant contributed
+            200 of the 204 votes. The preference findings are
+            therefore exploratory and should not be interpreted
+            as evidence of broad human consensus.
+            """)
+
+        # LIMITATIONS AND FUTURE WORK
+        limitations_col, future_col = st.columns(2, gap="large")
+            
+        with limitations_col:
+            with st.container(border=True):
+                st.subheader("⚠️ Limitations")
+
+                st.markdown("""
+                - **Domain sensitivity:** Improvements in one domain
+                can reduce performance in another.
+
+                - **Automatic metrics:** BLEU, chrF and COMET provide
+                useful signals but cannot fully capture human judgments.
+
+                - **Human evaluation:** Although all 200 evaluation
+                sentences received votes, one participant contributed
+                200 of the 204 votes. The results primarily reflect
+                one evaluator rather than broad human consensus.
+
+                - **LLM reliability:** Some E3 outputs contained
+                untranslated German text.
+
+                - **Error analysis:** The hybrid feedback system
+                produced false positives and missed some errors.
+
+                - **Reproducibility:** Local execution was verified,
+                but clean-environment reproduction remains untested.
+                """)
+
+        with future_col:
+            with st.container(border=True):
+                st.subheader("🚀 Future Work")
+
+                st.markdown("""
+                - Recruit more independent human evaluators and
+                collect multiple judgments per sentence to assess
+                inter-rater agreement and preference consistency.
+
+                - Experiment with different technical/general
+                training-data ratios.
+
+                - Investigate approaches to reduce general-domain
+                performance degradation during fine-tuning.
+
+                - Improve hybrid translation-error detection
+                and reduce false positives.
+
+                - Evaluate additional LLMs and prompting strategies.
+
+                - Improve deployment, dependency management,
+                and cross-platform reproducibility.
+                """)
+
+        # FINAL CONCLUSION
+        with st.container(border=True):
+            st.subheader("🎯 Final Conclusion")
+
+            st.markdown("""
+            **Research question:**
+
+            *Can domain-specific fine-tuning improve technical
+            translation quality without sacrificing
+            general-language performance?*
+
+            **Answer: Partially.**
+
+            The experiments demonstrate that domain-specific
+            fine-tuning can substantially improve technical
+            translation quality.
+
+            However, technical-only fine-tuning also reduces
+            general-domain performance.
+
+            Mixed-domain fine-tuning provides a more balanced
+            approach, retaining much of the technical improvement
+            while reducing the loss in general-language quality.
+
+            **The central lesson of TransistorAI is that translation
+            quality depends not only on the model architecture,
+            but also on the training-data distribution and
+            the domain in which the model is evaluated.**
+
+                        **Human evaluation revealed an additional finding:**
+            E3 (Qwen) received the most exclusive human selections
+            in both general and technical domains, despite scoring
+            below the leading MarianMT systems on full-test
+            automatic metrics.
+
+            Strict agreement between human choices and automatic
+            metric rankings was approximately 29–34%.
+
+            This demonstrates the importance of combining
+            reference-based metrics with direct human evaluation.
+
+            However, because one participant contributed 200 of
+            the 204 votes, the preference results remain exploratory.
+
+            **Final conclusion:** Mixed-domain fine-tuning offers
+            a practical compromise between technical specialization
+            and general-language performance, while human evaluation
+            provides an additional perspective that automatic metrics
+            alone cannot fully capture.
+            """)
+
+
+                
+
+
+        
         
         # =====================================================
         # FULL-TEST MODEL COMPARISON
@@ -1409,6 +1660,12 @@ with (run_dir / "train_metrics.json").open(
                 results_df.round(4),
                 hide_index=True,
                 use_container_width=True,
+                column_config={
+                    "n": st.column_config.NumberColumn(
+                        "evaluated data pairs",
+                        format="%d",
+                    ),
+                }
             )
 
             st.subheader("Best Model by Domain")
@@ -1525,7 +1782,7 @@ with (run_dir / "train_metrics.json").open(
 
         human_path = (
             PROJECT_ROOT
-            / "results/day17_human_metrics/metric_agreement_summary.csv"
+            / "results/day22_human_metrics/metric_agreement_summary.csv"
         )
 
         agreement_path = (
@@ -1540,7 +1797,7 @@ with (run_dir / "train_metrics.json").open(
                 human_df["domain"] == "overall"
             ].copy()
 
-            st.markdown("#### Day 17 — Metric Agreement")
+            st.markdown("#### Day 22 — Final Human–Metric Agreement")
 
             st.dataframe(
                 overall[
@@ -1614,10 +1871,15 @@ with (run_dir / "train_metrics.json").open(
                 )
 
         st.info(
-            "Human evaluation is exploratory. The preliminary "
-            "Day 17 analysis includes only 25 votes across "
-            "21 unique sentences. Repeated votes and ties "
-            "must be considered when interpreting agreement."
+            "Final Day 22 evaluation: 204 votes from 3 participants "
+            "covering all 200 evaluation sentences "
+            "(100 general and 100 technical). "
+            "E3 (Qwen) received the most exclusive human selections "
+            "in both domains: 42 general and 33 technical. "
+            "Human–metric strict agreement was 33.82% for BLEU, "
+            "28.92% for chrF, and 32.35% for COMET. "
+            "These findings are exploratory because one participant "
+            "contributed 200 of the 204 votes."
         )
 
         # =====================================================
@@ -1631,213 +1893,12 @@ with (run_dir / "train_metrics.json").open(
         - BLEU and chrF depend on reference wording.
         - COMET is a learned metric and is not infallible.
         - Automatic scores do not replace human evaluation.
-        - The human preference sample remains small.
+        - Human preferences cover 200 sentences, but one evaluator
+        contributed 200 of 204 votes, limiting generalizability.
         - Model architecture and inference settings differ.
         - Results are specific to the evaluated datasets.
         - Higher automatic scores do not guarantee better
           translations for every individual sentence.
         """)
 
-
-        if not results_path.exists():
-            st.warning("Pilot results CSV not found.")
-        else:
-            results_df = pd.read_csv(results_path)
-
-            st.subheader("Day 14 — LLM Comparison Pilot")
-
-            st.info(
-                "These results come from a pilot evaluation "
-                "using 50 technical and 50 general sentences. "
-                "They should not be confused with full-test "
-                "results or interpreted as definitive rankings."
-            )
-
-            metric_labels = {
-                "BLEU": "BLEU",
-                "chrF": "chrF",
-                "COMET": "COMET",
-            }
-
-            selected_metric = st.selectbox(
-                "Choose evaluation metric",
-                list(metric_labels.keys()),
-                key="explorer_metric_selection",
-            )
-
-            metric_column = metric_labels[selected_metric]
-
-                        # Full-test evaluation chart with fixed axes
-            metric_max = {
-                "BLEU": 50,
-                "chrF": 75,
-                "COMET": 1.0,
-            }
-
-            chart = (
-                alt.Chart(results_df)
-                .mark_bar()
-                .encode(
-                    x=alt.X(
-                        "model:N",
-                        title="Translation system",
-                        sort=[
-                            "E0_baseline",
-                            "E1_technical",
-                            "E2_mixed",
-                            "E3_Qwen",
-                        ],
-                        axis=alt.Axis(labelAngle=0),
-                    ),
-                    xOffset=alt.XOffset("domain:N"),
-                    y=alt.Y(
-                        f"{metric}:Q",
-                        title=f"{metric} score",
-                        scale=alt.Scale(
-                            domain=[0, metric_max[metric]]
-                        ),
-                    ),
-                    color=alt.Color(
-                        "domain:N",
-                        title="Domain",
-                    ),
-                    tooltip=[
-                        alt.Tooltip("model:N", title="Model"),
-                        alt.Tooltip("domain:N", title="Domain"),
-                        alt.Tooltip(
-                            f"{metric}:Q",
-                            title=metric,
-                            format=".4f",
-                        ),
-                    ],
-                )
-                .properties(height=350)
-            )
-
-            st.altair_chart(
-                chart,
-                use_container_width=True,
-            )
-
-            st.subheader("Detailed Results")
-
-            st.dataframe(
-                results_df,
-                hide_index=True,
-                use_container_width=True,
-            )
-
-            st.divider()
-            st.subheader("What Did We Learn?")
-
-            with st.expander(
-                "Finding 1 — Technical fine-tuning",
-                expanded=True,
-            ):
-                st.markdown("""
-                E1 achieved the highest technical-domain
-                BLEU, chrF and COMET scores in this pilot.
-
-                This supports the hypothesis that fine-tuning
-                on technical data improves performance in
-                the target domain.
-                """)
-
-            with st.expander(
-                "Finding 2 — General-domain performance"
-            ):
-                st.markdown("""
-                E0 achieved the highest general-domain
-                BLEU, chrF and COMET scores in this pilot.
-
-                E1 performed substantially worse on general
-                sentences than E0.
-
-                This is consistent with a domain-specialization
-                trade-off and possible catastrophic forgetting.
-                However, the pilot alone does not establish
-                the underlying cause.
-                """)
-
-            with st.expander(
-                "Finding 3 — Mixed-domain fine-tuning"
-            ):
-                st.markdown("""
-                E2 achieved technical performance close to E1,
-                while preserving better general-domain performance
-                than E1.
-
-                This suggests mixed-domain training can provide
-                a useful compromise between specialization
-                and generalization.
-                """)
-
-            with st.expander(
-                "Finding 4 — LLM comparison"
-            ):
-                st.markdown("""
-                E3, the Qwen LLM, scored below the NMT systems
-                on technical translations in this pilot.
-
-                On general sentences, its COMET score was
-                close to E0, despite lower BLEU and chrF.
-
-                This highlights the importance of evaluating
-                translation quality using complementary metrics.
-                """)
-
-            st.divider()
-            st.subheader("Evaluation Limitations")
-
-            st.markdown("""
-            - Only 50 sentences per domain were included
-              in the Day 14 pilot.
-            - BLEU and chrF depend on reference wording.
-            - COMET is a learned metric and is not infallible.
-            - Automatic metrics do not replace human evaluation.
-            - Model comparisons should use the same sentences
-              and evaluation settings.
-            - The LLM and NMT systems have different
-              architectures and inference configurations.
-            """)
-
-            st.divider()
-            st.subheader("Human Preferences vs Automatic Metrics")
-
-            st.markdown("""
-            During Day 15–17, TransistorAI introduced a
-            blind human preference evaluation.
-
-            Participants compare translations from E0,
-            E1, E2 and E3 without seeing model identities.
-
-            The project then compares their selections
-            with BLEU, chrF and COMET rankings.
-            """)
-
-            st.markdown("#### Day 17 preliminary analysis")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric("Compared votes", "25")
-
-            with col2:
-                st.metric("Unique sentences", "21")
-
-            with col3:
-                st.metric("BLEU strict agreement", "36%")
-
-            st.caption(
-                "These values are from the preliminary Day 17 "
-                "comparison output, not necessarily the full "
-                "human preference database. Further coverage "
-                "validation is required."
-            )
-
-            st.info(
-                "A low agreement rate does not automatically "
-                "mean a metric is unreliable. Sample size, "
-                "ties, missing scores and evaluation design "
-                "must also be considered."
-            )
+    
