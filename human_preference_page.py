@@ -175,6 +175,32 @@ def render_human_preference_page(user_id, username):
 
     st.subheader("Which English translation is best?")
 
+    st.markdown("""
+    <style>
+    /* Human Preference Evaluation — four soft red shades */
+
+    div[data-testid="stRadio"] div[role="radiogroup"]
+    > label:nth-of-type(1) p {
+        color: #E9A6A0 !important;
+    }
+
+    div[data-testid="stRadio"] div[role="radiogroup"]
+    > label:nth-of-type(2) p {
+        color: #D99A9A !important;
+    }
+
+    div[data-testid="stRadio"] div[role="radiogroup"]
+    > label:nth-of-type(3) p {
+        color: #EB807B !important;
+    }
+
+    div[data-testid="stRadio"] div[role="radiogroup"]
+    > label:nth-of-type(4) p {
+        color: #D88D91 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     if len(options) == 1:
         st.info(
             "All four models generated the same translation. "

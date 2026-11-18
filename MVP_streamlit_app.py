@@ -4,6 +4,7 @@
 # Transformers loads the pretrained model and tokenizer.
 # time.perf_counter() measures elapsed time precisely.
 import altair as alt
+from html import escape
 import json
 from project_explorer_page import render_project_explorer_page
 
@@ -313,7 +314,173 @@ if "app_section" not in st.session_state:
 
 section = st.session_state.app_section
 
+
 if section == "welcome":
+
+    st.markdown("""
+    <style>
+    /* Decorative bilingual background */
+    .welcome-background {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .welcome-word {
+        position: absolute;
+        color: rgba(150, 170, 200, 0.12);
+        font-weight: 700;
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    .word-1 { top: 20%; left: 7%; font-size: 5rem; transform: rotate(-14deg); }
+    .word-2 { top: 38%; right: 7%; font-size: 4rem; transform: rotate(12deg); }
+    .word-3 { top: 65%; left: 5%; font-size: 4rem; transform: rotate(-10deg); }
+    .word-4 { top: 78%; right: 6%; font-size: 4rem; transform: rotate(10deg); }
+    .word-5 { top: 12%; right: 12%; font-size: 2.5rem; transform: rotate(8deg); }
+    .word-6 { top: 86%; left: 25%; font-size: 3rem; transform: rotate(-6deg); }
+
+    /* Welcome title */
+    .welcome-heading {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        padding: 2rem 0 1.5rem;
+    }
+
+    .welcome-heading h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-heading p {
+        color: #9CA3AF;
+        font-size: 1.05rem;
+    }
+
+
+    /* Blue Interaction button */
+    .st-key-welcome_interaction button {
+        background-color: #3B82F6 !important;
+        border-color: #3B82F6 !important;
+        color: white !important;
+    }
+
+    .st-key-welcome_interaction button:hover {
+        background-color: #2563EB !important;
+        border-color: #2563EB !important;
+    }
+
+    /* Card text */
+    .welcome-card-heading {
+        text-align: center;
+        font-size: 1.6rem;
+        font-weight: 750;
+        margin-bottom: 0.4rem;
+    }
+
+    .welcome-card-subtitle {
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 650;
+        margin-bottom: 0.8rem;
+    }
+
+    .welcome-card-description {
+        text-align: center;
+        color: #AEB8C7;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .welcome-word {
+            font-size: 2rem !important;
+        }
+        .welcome-heading h1 {
+            font-size: 2rem;
+        }
+    }
+    </style>
+
+    <div class="welcome-background" aria-hidden="true">
+        <span class="welcome-word word-1">Hello</span>
+        <span class="welcome-word word-2">Hallo</span>
+        <span class="welcome-word word-3">Welcome</span>
+        <span class="welcome-word word-4">Willkommen</span>
+        <span class="welcome-word word-5">Good morning</span>
+        <span class="welcome-word word-6">Guten Morgen</span>
+    </div>
+
+    <div class="welcome-heading">
+        <h1>
+            🌍 Welcome to Transistor<span style="color: #FF4B4B;">A</span><span style="color: #3B82F6;">I</span>
+        </h1>
+        <p>Explore translation research. Experience machine learning.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Center the navigation cards.
+    left, center, right = st.columns([1, 2.4, 1])
+
+    with center:
+
+        # Card 1 — Analytics
+        with st.container(border=True):
+            st.markdown("""
+            <div class="welcome-card-heading">
+                📊 Transistor<span style="color: #FF4B4B;">Analytics</span>
+            </div>
+            <div class="welcome-card-subtitle">
+                Machine Learning Translation Research Project
+            </div>
+            <div class="welcome-card-description">
+                Discover the project architecture, datasets,
+                training process, model comparisons and
+                human evaluation results.
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button(
+                "Open TransistorAnalytics",
+                use_container_width=True,
+                type="primary",
+                key="welcome_analytics",
+            ):
+                st.session_state.app_section = "analytics"
+                st.rerun()
+
+        st.markdown("<div style='height: 90px;'></div>", unsafe_allow_html=True)
+
+        # Card 2 — Interaction
+        with st.container(border=True):
+            st.markdown("""
+            <div class="welcome-card-heading">
+                🌍 Transistor<span style="color: #3B82F6;">Interaction</span>
+            </div>
+            <div class="welcome-card-subtitle">
+                Let's translate together and learn!
+            </div>
+            <div class="welcome-card-description">
+                Translate using different models, learn vocabulary
+                and participate in human preference evaluation.
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button(
+                "Open TransistorInteraction",
+                use_container_width=True,
+                type="primary",
+                key="welcome_interaction",
+            ):
+                st.session_state.app_section = "interaction"
+                st.rerun()
+
+    st.stop()
     st.title("🌍 Welcome to TransistorAI")
 
     st.markdown(
@@ -530,44 +697,134 @@ if section == "interaction":
                 4,
                 gap="medium",
             )
-
+            MODEL_COLORS = {
+                "E0": "#E9A6A0",
+                "E1": "#D99A9A",
+                "E2": "#EB807B",
+                "E3": "#D88D91",
+            }
             for index, result in enumerate(results):
+                model_key = result["model"]
+                color = MODEL_COLORS.get(model_key, "#E9A6A0")
+
 
                 with translation_columns[index % 4]:
 
                     with st.container(border=True):
 
                         st.markdown(
-                            f"#### {result['model']} — {result['name']}"
+                            f'<h4 style="color: {color};">'
+                            f'{escape(model_key)} — {escape(result["name"])}'
+                            f'</h4>',
+                            unsafe_allow_html=True,
                         )
 
-                        st.write(result["translation"])
-
-                        st.caption(
-                            f"Latency: {result['latency_ms']:.2f} ms"
+                        st.markdown(
+                            f'<p style="color: {color};">'
+                            f'{escape(str(result["translation"]))}'
+                            f'</p>',
+                            unsafe_allow_html=True,
                         )
+
+                        st.markdown(
+                            f'<p style="color: {color}; font-size: 0.8rem;">'
+                            f'Latency: {result["latency_ms"]:.2f} ms'
+                            f'</p>',
+                            unsafe_allow_html=True,
+                        )
+
+
 
 
             if len(results) > 1:
 
                 st.markdown("### Model comparison")
 
-                comparison_df = pd.DataFrame(
-                    [
-                        {
-                            "Model": f"{r['model']} — {r['name']}",
-                            "Translation": r["translation"],
-                            "Latency (ms)": round(r["latency_ms"], 2),
-                        }
-                        for r in results
-                    ]
+                comparison_df = pd.DataFrame([
+                    {
+                        "Model": f"{r['model']} — {r['name']}",
+                        "Translation": r["translation"],
+                        "Latency (ms)": round(r["latency_ms"], 2),
+                    }
+                    for r in results
+                ])
+
+
+                # Styled HTML table with larger font sizes
+                table_rows = []
+
+                for result in results:
+                    model_key = result["model"]
+                    color = MODEL_COLORS.get(model_key, "#FFFFFF")
+
+                    model_name = escape(
+                        f'{model_key} — {result["name"]}'
+                    )
+                    translation = escape(
+                        str(result["translation"])
+                    )
+                    latency = f'{result["latency_ms"]:.2f}'
+
+                    table_rows.append(
+                        f'<tr style="color: {color};">'
+                        f'<td>{model_name}</td>'
+                        f'<td>{translation}</td>'
+                        f'<td style="text-align: right;">{latency}</td>'
+                        f'</tr>'
+                    )
+
+                table_html = f"""
+                <style>
+                .model-comparison-table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 16px;
+                    line-height: 1.5;
+                }}
+
+                .model-comparison-table th {{
+                    text-align: left;
+                    padding: 12px;
+                    font-size: 16px;
+                    color: #D1D5DB;
+                    background: #1B1E26;
+                    border: 1px solid #343943;
+                }}
+
+                .model-comparison-table td {{
+                    padding: 12px;
+                    border: 1px solid #343943;
+                    vertical-align: middle;
+                }}
+
+                .model-comparison-table tr:hover {{
+                    background: #1A2029;
+                }}
+                </style>
+
+                <table class="model-comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Translation</th>
+                            <th style="text-align: right;">Latency (ms)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {''.join(table_rows)}
+                    </tbody>
+                </table>
+                """
+
+                st.markdown(
+                    table_html,
+                    unsafe_allow_html=True,
                 )
 
-                st.dataframe(
-                    comparison_df,
-                    hide_index=True,
-                    use_container_width=True,
-                )
+
+
+
+
 
             with st.expander("Decoding configuration"):
                 st.json(DECODING_CONFIG)
@@ -576,8 +833,9 @@ if section == "interaction":
                     "Qwen uses separate MLX generation settings."
                 )
 
-        for error in errors:
-            st.error(error)
+
+            for error in errors:
+                st.error(error)
 
 
 
@@ -659,9 +917,9 @@ if section == "interaction":
                     "using a neural model."
                 ),
             )
-    
-    
-    
+
+
+
         # ========================================================
         # STAGE 1 — SUBMIT AND ANALYZE
         # ========================================================
@@ -725,18 +983,41 @@ if section == "interaction":
 
             st.markdown("### Translation error analysis")
 
-            st.write("**German source:**", attempt["source"])
-            st.write("**Your translation:**", attempt["user_translation"])
-            st.write("**Reference translation:**", attempt["reference"])
+
+
+
+            st.markdown(
+                f'<p style="color: #E9A6A0; margin-bottom: 8px;">'
+                f'<strong>German source:</strong> {escape(str(attempt["source"]))}'
+                f'</p>',
+                unsafe_allow_html=True,
+            )
+
+            st.markdown(
+                f'<p style="color: #E9A6A0; margin-bottom: 8px;">'
+                f'<strong>Reference translation:</strong> {escape(str(attempt["reference"]))}'
+                f'</p>',
+                unsafe_allow_html=True,
+            )
+
+            st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
+
+            st.markdown(
+                f'<p style="color: #EB807B;">'
+                f'<strong>Your translation:</strong> {escape(str(attempt["user_translation"]))}'
+                f'</p>',
+                unsafe_allow_html=True,
+            )
+
 
             analysis = json.loads(attempt["rule_feedback"])
 
-            
+
             # ====================================================
             # INDIVIDUAL MISTAKE DETECTION AND SELECTION
             # ====================================================
 
-            
+
             analysis_key = f"hybrid_analysis_{attempt['attempt_id']}"
 
             if analysis_key not in st.session_state:
@@ -955,7 +1236,7 @@ if section == "interaction":
                     use_container_width=True,
                 )
 
-                
+
                 # ================================================
                 # BLEU AND chrF — FIXED SCALE, NO SCROLL ZOOM
                 # ================================================
@@ -1004,7 +1285,7 @@ if section == "interaction":
                         ],
                     )
                     .properties(height=300)
-                    
+
                 )
 
                 st.altair_chart(
@@ -1064,7 +1345,7 @@ if section == "interaction":
                             ],
                         )
                         .properties(height=300)
-                        
+
                     )
 
                     st.altair_chart(
